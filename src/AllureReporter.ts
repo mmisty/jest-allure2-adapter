@@ -18,7 +18,6 @@ import {
 } from 'allure-js-commons';
 import stripAnsi from 'strip-ansi';
 import { relative } from 'path';
-import { Categories } from './setup';
 
 enum SpecStatus {
   PASSED = 'passed',
@@ -39,6 +38,7 @@ export class AllureReporter extends Allure {
   private stepStack: AllureStep[] = [];
   private stepNameStack: string[] = [];
   private environmentInfo: Record<string, string> = {};
+  private categories: Category[] = [];
 
   constructor(config?: IAllureConfig) {
     super(new AllureRuntime(config ?? { resultsDir: 'allure-results' }));
@@ -81,6 +81,7 @@ export class AllureReporter extends Allure {
     this.groupStack.push(this.currentGroup);
   }
 
+  // todo remove tags
   startTest(name?: string) {
     this.runningTest = this.currentGroup.startTest(name);
     // Capture Jest worker thread for timeline report
@@ -181,6 +182,10 @@ export class AllureReporter extends Allure {
     return null;
   }
 
+  writeCategories() {
+    super.writeCategoriesDefinitions(this.categories);
+  }
+
   private applyGroupping() {
     const groups = this.groupNameStack;
     if (groups.length > 0) {
@@ -194,10 +199,6 @@ export class AllureReporter extends Allure {
     if (groups.length > 2) {
       this.subSuite(groups.slice(2).join(' > '));
     }
-  }
-
-  writeCategoriesDefinitions(categories: Category[]) {
-    super.writeCategoriesDefinitions(categories);
   }
 
   endGroup() {
@@ -284,7 +285,7 @@ export class AllureReporter extends Allure {
 
   addEnvironment(name: string, value: string) {
     this.environmentInfo[name] = value;
-    this.writeEnvironmentInfo(this.environmentInfo);
+    super.writeEnvironmentInfo(this.environmentInfo);
     return this;
   }
 
@@ -329,7 +330,7 @@ export class AllureReporter extends Allure {
 
   addCategory(category: Category): void {
     // todo check if the same exist
-    Categories.push(category);
+    this.categories.push(category);
   }
 
   addPackage(value: string) {
@@ -337,8 +338,28 @@ export class AllureReporter extends Allure {
     return this;
   }
 
+  addPackageByTestPath(relativeFrom: string, spec: any) {
+    const relativePath = relative(relativeFrom, spec.testPath);
+    this.addPackage(relativePath);
+    return this;
+  }
+
   addParameter(name: string, value: string) {
     this.currentExecutable.addParameter(name, value);
+    return this;
+  }
+
+  addParameters(...params: [string, any][]) {
+    params.forEach((p) => {
+      const value = typeof p[1] !== 'string' ? JSON.stringify(p[1]) : p[1];
+      this.currentExecutable.addParameter(p[0], value);
+    });
+    return this;
+  }
+
+  addTestPathParameter(relativeFrom: string, spec: any) {
+    const relativePath = relative(relativeFrom, spec.testPath);
+    this.addParameter('Test Path', relativePath);
     return this;
   }
 
@@ -353,7 +374,11 @@ export class AllureReporter extends Allure {
   }
 
   addLink(options: { name?: string; url: string; type?: LinkType }) {
-    this.currentTest.addLink(options.url, options.name, options.type);
+    this.currentTest.addLink(
+      options.url,
+      options.name ?? options.url,
+      options.type,
+    );
     return this;
   }
 

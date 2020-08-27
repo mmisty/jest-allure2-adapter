@@ -18,7 +18,10 @@ class JestAllureReporter implements Reporter {
       resultsDir: path.resolve('.', options.resultsDir || 'allure-results'),
     };
   }
-
+  onRunStart(
+    results: jest.AggregatedResult,
+    options: jest.ReporterOnStartOptions,
+  ) {}
   onTestStart(test: jest.Test) {
     const setupPath = require.resolve('./setup');
     const setupTestFrameworkScriptFile =
