@@ -1,10 +1,13 @@
 {
   "name": "jest-allure2-adapter",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Allure 2 Adapter for jest",
   "main": "dist/index",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:mmisty/jest-allure2-adapter.git",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
   "author": "Taisia Pitko (mmisty) <minydas@yandex.ru>",
   "license": "MIT",
   "scripts": {
