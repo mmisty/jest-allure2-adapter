@@ -1,6 +1,6 @@
 {
   "name": "jest-allure2-adapter",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "description": "Allure 2 Adapter for jest",
   "main": "dist/index",
   "types": "dist/index.d.ts",
@@ -19,12 +19,13 @@
     "jest",
     "report",
     "reporter",
+    "html",
     "reports",
     "allure",
     "allure2",
     "e2e",
     "tests",
-    "screenshots"
+    "adapter"
   ],
   "devDependencies": {
     "@types/jest": "^22.2.3",
