@@ -2,19 +2,20 @@ import {
   Allure,
   AllureGroup,
   AllureRuntime,
-  LinkType,
   AllureStep,
   AllureTest,
   Attachment,
   Category,
   ContentType,
   ExecutableItemWrapper,
+  IAllureConfig,
   isPromise,
   LabelName,
-  IAllureConfig,
+  LinkType,
   Stage,
   Status,
   StepInterface,
+  Severity,
 } from 'allure-js-commons';
 import stripAnsi from 'strip-ansi';
 import { relative } from 'path';
@@ -32,7 +33,7 @@ enum SpecStatus {
 export class AllureReporter extends Allure {
   private runningTest: AllureTest | null = null;
   private runningGroup: AllureGroup | null = null;
-  public runningExecutable: ExecutableItemWrapper | null = null;
+  private runningExecutable: ExecutableItemWrapper | null = null;
   private groupStack: AllureGroup[] = [];
   private groupNameStack: string[] = [];
   private stepStack: AllureStep[] = [];
@@ -81,9 +82,12 @@ export class AllureReporter extends Allure {
     this.groupStack.push(this.currentGroup);
   }
 
-  // todo remove tags
-  startTest(name?: string) {
-    this.runningTest = this.currentGroup.startTest(name);
+  // todo remove - change name someway
+  // todo decorators
+  startTest(spec: any) {
+    this.runningTest = this.currentGroup.startTest(spec.description);
+    this.runningTest.fullName = spec.fullName;
+
     // Capture Jest worker thread for timeline report
     if (process.env.JEST_WORKER_ID) {
       this.currentTest.addLabel(
@@ -121,8 +125,37 @@ export class AllureReporter extends Allure {
     step.endStep();
   }
 
+  private endSteps() {
+    while (this.currentStep !== null) {
+      this.endStep(Status.FAILED);
+    }
+  }
+
+  private applyGroupping(): void {
+    const groups = this.groupNameStack;
+    this.addPackage(groups.join('.'));
+
+    if (groups.length > 0) {
+      this.parentSuite(groups[0]);
+    }
+
+    if (groups.length > 1) {
+      this.suite(groups[1]);
+    }
+
+    if (groups.length > 2) {
+      this.subSuite(groups[2]);
+    }
+    if (groups.length > 3) {
+      this.currentTest.name =
+        groups.slice(3).join(' > ') + '>>' + this.currentTest.name;
+    }
+  }
+
   // todo type
   endTest(spec: any) {
+    this.endSteps();
+
     if (spec.status === SpecStatus.PASSED) {
       this.currentTest.status = Status.PASSED;
       this.currentTest.stage = Stage.FINISHED;
@@ -186,21 +219,6 @@ export class AllureReporter extends Allure {
     super.writeCategoriesDefinitions(this.categories);
   }
 
-  private applyGroupping() {
-    const groups = this.groupNameStack;
-    if (groups.length > 0) {
-      this.parentSuite(groups[0]);
-    }
-
-    if (groups.length > 1) {
-      this.suite(groups[1]);
-    }
-
-    if (groups.length > 2) {
-      this.subSuite(groups.slice(2).join(' > '));
-    }
-  }
-
   endGroup() {
     if (!this.currentGroup) {
       throw new Error('No runningGroup');
@@ -242,8 +260,6 @@ export class AllureReporter extends Allure {
     body?: (step: StepInterface) => T,
     ...args: any[]
   ): any {
-    console.log('step:', name);
-
     const allureStep = this.startStep(name);
     let result;
 
@@ -255,7 +271,6 @@ export class AllureReporter extends Allure {
     try {
       result = allureStep.wrap(body)(args);
     } catch (error) {
-      console.log('Result:' + JSON.stringify(result));
       this.endStep(Status.FAILED);
       throw error;
     }
@@ -264,7 +279,6 @@ export class AllureReporter extends Allure {
       const promise = result as Promise<any>;
       return promise
         .then((a) => {
-          console.log('Result pass: isPromise');
           this.endStep(Status.PASSED);
           return a;
         })
@@ -277,10 +291,6 @@ export class AllureReporter extends Allure {
       this.endStep(Status.PASSED);
       return result;
     }
-
-    /*if (!isPromise(result)) {
-
-        }*/
   }
 
   addEnvironment(name: string, value: string) {
@@ -298,8 +308,7 @@ export class AllureReporter extends Allure {
     status: Status,
     attachments?: [Attachment],
   ): void {
-    console.log('AllureImpl status:', status);
-
+    // console.log('AllureImpl status:', status);
     /*const wrappedStep = this.startStep(name);
 
                 if (attachments) {
@@ -338,12 +347,6 @@ export class AllureReporter extends Allure {
     return this;
   }
 
-  addPackageByTestPath(relativeFrom: string, spec: any) {
-    const relativePath = relative(relativeFrom, spec.testPath);
-    this.addPackage(relativePath);
-    return this;
-  }
-
   addParameter(name: string, value: string) {
     this.currentExecutable.addParameter(name, value);
     return this;
@@ -363,16 +366,6 @@ export class AllureReporter extends Allure {
     return this;
   }
 
-  description(description: string) {
-    this.currentTest.description = description;
-    return this;
-  }
-
-  descriptionHtml(description: string) {
-    this.currentTest.descriptionHtml = description;
-    return this;
-  }
-
   addLink(options: { name?: string; url: string; type?: LinkType }) {
     this.currentTest.addLink(
       options.url,
@@ -383,24 +376,26 @@ export class AllureReporter extends Allure {
   }
 
   addIssue(options: { id: string; name?: string; url?: string }) {
-    const uri = 'some';
+    // todo config
     /* options.url ??
         (this.config?.issueUri ? this.config.issueUri(options.id) : undefined);*/
-    if (!uri) {
+    /*if (!url) {
       throw new Error('Specify url or issueUri in config');
-    }
-    this.issue(options.name ?? options.id, uri);
+    }*/
+    this.issue(options.name ?? options.id, options.url ?? options.id);
     return this;
   }
 
   addTms(options: { id: string; name?: string; url?: string }) {
-    const uri = 'some';
+    // todo config
+    // const uri = 'some';
     /* options.url ??
         (this.config?.tmsUri ? this.config.tmsUri(options.id) : undefined);*/
-    if (!uri) {
+    /*if (!uri) {
       throw new Error('Specify url or tmsUri in config');
-    }
-    this.tms(options.name ?? options.id, uri);
+    }*/
+    this.tms(options.name ?? options.id, options.url ?? options.id);
+
     return this;
   }
 
@@ -417,5 +412,63 @@ export class AllureReporter extends Allure {
   addLabel(name: string, value: string) {
     this.currentTest.addLabel(name, value);
     return this;
+  }
+
+  description(description: string) {
+    this.currentTest.description = description;
+    return this;
+  }
+
+  descriptionHtml(description: string) {
+    this.currentTest.descriptionHtml = description;
+    return this;
+  }
+
+  feature(feature: string) {
+    super.feature(feature);
+  }
+
+  story(story: string) {
+    super.story(story);
+  }
+
+  tag(tag: string) {
+    super.tag(tag);
+  }
+
+  owner(owner: string) {
+    super.owner(owner);
+  }
+
+  lead(lead: string) {
+    super.label(LabelName.LEAD, lead);
+  }
+
+  framework(framework: string) {
+    super.label(LabelName.FRAMEWORK, framework);
+  }
+
+  language(language: string) {
+    super.label(LabelName.LANGUAGE, language);
+  }
+
+  as_id(id: string) {
+    super.label(LabelName.AS_ID, id);
+  }
+
+  host(host: string) {
+    super.label(LabelName.HOST, host);
+  }
+
+  testClass(testClass: string) {
+    super.label(LabelName.TEST_CLASS, testClass);
+  }
+
+  testMethod(testMethod: string) {
+    super.label(LabelName.TEST_METHOD, testMethod);
+  }
+
+  severity(severity: Severity) {
+    super.severity(severity);
   }
 }

@@ -1,6 +1,9 @@
-# Jest-Allure reporting plugin
+# Jest-Allure-2 reporting plugin
+
+Originally forked from jest-allure.
 
 #### Add more power to your tests using Jest-Allure. Easily generate nice reports at the end of the execution.
+
 [![Awesome](https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg)](https://github.com/jest-community/awesome-jest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
@@ -8,10 +11,10 @@
 [![GitHub followers](https://img.shields.io/github/followers/zaqqaz.svg?style=social)](https://github.com/zaqqaz)
 [![GitHub stars](https://img.shields.io/github/stars/zaqqaz/jest-allure.svg?style=social)](https://github.com/zaqqaz/jest-allure/stargazers)
 [![GitHub watchers](https://img.shields.io/github/watchers/zaqqaz/jest-allure.svg?style=social)](https://github.com/zaqqaz/jest-allure/watchers)
+
 #### Examples
-- [Report example](https://103-170502579-gh.circle-artifacts.com/0/Report/Allure/index.html)
-- [Visual unit tests with allure report. Demo project](https://github.com/zaqqaz/visual-unit-tests)
-- [Simple integration test](https://github.com/zaqqaz/jest-allure/blob/master/examples/__tests__/test1.js)
+
+- todo
 
 <hr>
 
@@ -25,35 +28,40 @@ information from everyday execution of tests.
 #### Installation
 
 ```
-yarn add -D jest-allure
+yarn add -D jest-allure2-adapter
 ```
+
 or
 
 ```
-npm install --save-dev jest-allure
+npm install --save-dev jest-allure2-adapter
 ```
 
 ### jest -v >24 ?
-Then add `jest-allure/dist/setup` to `setupFilesAfterEnv` section of your config.
+
+Then add `jest-allure2-adapter/dist/setup` to `setupFilesAfterEnv` section of your config.
 
 ```
-setupFilesAfterEnv: ["jest-allure/dist/setup"]
+setupFilesAfterEnv: ["jest-allure2-adapter/dist/setup"]
 ```
 
 ### jest -v < 24 ?
 
 #### add reporter to jest.config.js
+
 ```
-reporters: ["default", "jest-allure"],
+reporters: ["default", "jest-allure2-adapter"],
 ```
 
-Run your tests and enjoy 🥤🚀
+Run tests. Results will be generated and stored in `allure-results` folder.
 
 ---
 
 #### How to get a report
 
 You need to install the [CLI](https://github.com/allure-framework/allure2#download) in order to obtain a report.
+
+For example see [allure-commandline](https://www.npmjs.com/package/allure-commandline).
 
 To see a report in browser, run in console
 
@@ -68,26 +76,55 @@ allure generate
 ```
 
 # Advanced features
-You can add description, screenshots, steps, severity and lots of other 
+
+You can add description, screenshots, steps, severity and lots of other
 fancy stuff to your reports.
 
 Global variable `reporter` available in your tests with such methods:
 
 ```
     description(description: string): this;
+    descriptionHtml(description: string): this;
     severity(severity: Severity): this;
     epic(epic: string): this;
     feature(feature: string): this;
     story(story: string): this;
+    owner(story: string): this;
+
+    step<T>(name: string, body: () => any): T;
     startStep(name: string): this;
     endStep(status?: Status): this;
-    addArgument(name: string): this;
+
     addEnvironment(name: string, value: string): this;
+
     addAttachment(name: string, buffer: any, type: string): this;
+    addTestAttachment(name: string, buffer: any, type: string): this;
+
     addLabel(name: string, value: string): this;
     addParameter(paramName: string, name: string, value: string): this;
+    addParameters(...params: [string, any][]): this;
+
+    addLink(options: {
+        name?: string;
+        url: string;
+        type?: LinkType;
+    }): this;
+
+    addIssue(options: {
+        id: string;
+        name?: string;
+        url?: string;
+    }): this;
+
+    addTms(options: {
+        id: string;
+        name?: string;
+        url?: string;
+    }): this;
+
 ```
-**Example**
+
+**Example (todo)**
 
 ```
 import { Severity } from "jest-allure/dist/Reporter";
@@ -95,7 +132,7 @@ import { Feature } from "somwhere in your project";
 
 describe("Fancy test", () => {
         ...
-        
+
         it("Test your amazing feature", async () => {
             reporter
                 .description("Feature should work cool")
@@ -106,7 +143,7 @@ describe("Fancy test", () => {
             reporter.startStep("Check it's fancy");
             // expect that it's fancy
             reporter.endStep();
-            
+
             reporter.startStep("Check it's cool");
             // expect that it's cool
             reporter.endStep();
@@ -114,37 +151,33 @@ describe("Fancy test", () => {
             const screenshotBuffer = await page.screenshot();
             reporter.addAttachment("Screenshot", screenshotBuffer, "image/png");
         });
-        
+
         ...
     }
 );
 
 ```
+
 #### What's next
 
-- [x] Generate report from Jest results
-- [x] Add steps support
-- [x] Add labels support
-- [x] Add attachments support
-- [x] Add more examples
+- [ ] Add before/after hooks
+- [ ] Add examples
 
 ---
 
-#### Additional projects
-[visual-unit-tests](https://github.com/zaqqaz/visual-unit-tests)
-
-[jest-allure-image-snapshot](https://github.com/zaqqaz/jest-allure-image-snapshot)
-
 #### Warning
-``jest-allure`` reporter dynamically configure "setupTestFrameworkScriptFile" option in Jest configuration.
+
+`jest-allure2-adapter` reporter dynamically configure "setupTestFrameworkScriptFile" option in Jest configuration.
 **If you have your own setupTestFrameworkScriptFile file**, you need to manually register allure reporter, for it you need to import jest-allure/dist/setup.
 
 ```typescript
-import "jest-allure/dist/setup";
+import 'jest-allure2-adapter/dist/setup';
 ```
 
 In case if you have jest version > 24 just add `jest-allure/dist/setup` to `setupFilesAfterEnv` section of your config.
 
 ## Contributors
-| [<img src="https://avatars3.githubusercontent.com/u/2823336?s=460&v=4" width="100px;"/><br/><sub><b>Denis Artyuhovich</b></sub>](https://denis.by) | [<img src="https://avatars1.githubusercontent.com/u/7804416?s=460&v=4" width="100px;"/><br/><sub><b>Dmitry Bogomya</b></sub>](https://github.com/bogomya) |
-| ---      | ---       |
+
+| [<img src="https://avatars0.githubusercontent.com/u/16957275?s=400&v=4" width="100px;"/><br/><sub><b>Taisia Pitko</b></sub>](https://github.com/mmisty) |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+

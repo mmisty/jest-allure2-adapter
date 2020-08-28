@@ -51,7 +51,7 @@ export class JasmineAllureReporter implements jasmine.CustomReporter {
   }
 
   specStarted(spec: jasmine.CustomReporterResult) {
-    this.allure.startTest(spec.description);
+    this.allure.startTest(spec);
   }
 
   specDone(spec: jasmine.CustomReporterResult) {
