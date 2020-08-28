@@ -42,10 +42,6 @@ export class JasmineAllureReporter implements jasmine.CustomReporter {
     }
   }
 
-  jasmineDone() {
-    this.allure.writeCategories();
-  }
-
   suiteDone() {
     this.allure.endGroup();
   }

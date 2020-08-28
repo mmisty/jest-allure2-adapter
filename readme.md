@@ -162,6 +162,7 @@ describe("Fancy test", () => {
 
 - [ ] Add before/after hooks
 - [ ] Add examples
+- [ ] Ability to config (timestamp to step, jira link)
 
 ---
 

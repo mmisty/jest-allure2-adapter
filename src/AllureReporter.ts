@@ -29,7 +29,24 @@ enum SpecStatus {
   EXCLUDED = 'excluded',
   TODO = 'todo',
 }
-
+export const dateStr = () => {
+  const date = new Date(Date.now());
+  return (
+    date.getFullYear() +
+    '-' +
+    (date.getMonth() + 1) +
+    '-' +
+    date.getDate() +
+    ' ' +
+    date.getUTCHours() +
+    ':' +
+    date.getMinutes() +
+    ':' +
+    date.getSeconds() +
+    '.' +
+    date.getMilliseconds()
+  );
+};
 export class AllureReporter extends Allure {
   private runningTest: AllureTest | null = null;
   private runningGroup: AllureGroup | null = null;
@@ -39,7 +56,6 @@ export class AllureReporter extends Allure {
   private stepStack: AllureStep[] = [];
   private stepNameStack: string[] = [];
   private environmentInfo: Record<string, string> = {};
-  private categories: Category[] = [];
 
   constructor(config?: IAllureConfig) {
     super(new AllureRuntime(config ?? { resultsDir: 'allure-results' }));
@@ -67,6 +83,7 @@ export class AllureReporter extends Allure {
 
   startGroup(name: string) {
     // todo check currentgroup.startgroup
+    // todo check empty name
     this.runningGroup = this.runtime.startGroup(name);
     let nameGr = name;
 
@@ -96,33 +113,34 @@ export class AllureReporter extends Allure {
       );
     }
 
-    this.applyGroupping();
+    this.applyGroupping(spec);
   }
 
-  startStep(name: string): AllureStep {
-    const allureStep = this.currentExecutable.startStep(name);
+  startStep(name: string, start?: number): AllureStep {
+    const allureStep = this.currentExecutable.startStep(
+      dateStr() + ' | ' + name,
+      start,
+    );
     this.stepStack.push(allureStep);
-    // const myStep = { uid: v4(), step: allureStep }
-    // this.stepStack2.push(myStep);
     this.stepNameStack.push(name);
-
-    // console.log('START:' + JSON.stringify(this.stepNameStack));
     return allureStep;
   }
 
-  endStep(status?: Status, stage?: Stage) {
+  endStep(status?: Status, stage?: Stage, end?: number) {
     // console.log('END:' + JSON.stringify(this.stepNameStack));
     const step = this.stepStack.pop();
-
     this.stepNameStack.pop();
+
     if (!step) {
-      throw new Error('No step started');
+      console.log('No step started');
+      // throw new Error('No step started');
+      return;
     }
     step.stage = stage ?? Stage.FINISHED;
     if (status) {
       step.status = status;
     }
-    step.endStep();
+    step.endStep(end);
   }
 
   private endSteps() {
@@ -131,8 +149,19 @@ export class AllureReporter extends Allure {
     }
   }
 
-  private applyGroupping(): void {
-    const groups = this.groupNameStack;
+  private applyGroupping(spec: any): void {
+    const replaceDot = (name: string): string => {
+      // todo regexp with \s
+      if (name.substr(0, 1) === '.') {
+        return name.substr(1, name.length - 1);
+      }
+      if (name.substr(name.length - 1) === '.') {
+        return name.substr(0, name.length - 1);
+      }
+      return name;
+    };
+    const groups = this.groupNameStack.map((p) => replaceDot(p));
+    groups.map;
     this.addPackage(groups.join('.'));
 
     if (groups.length > 0) {
@@ -148,7 +177,7 @@ export class AllureReporter extends Allure {
     }
     if (groups.length > 3) {
       this.currentTest.name =
-        groups.slice(3).join(' > ') + '>>' + this.currentTest.name;
+        groups.slice(3).join(' > ') + ' \n >> ' + spec.description;
     }
   }
 
@@ -215,8 +244,8 @@ export class AllureReporter extends Allure {
     return null;
   }
 
-  writeCategories() {
-    super.writeCategoriesDefinitions(this.categories);
+  writeCategories(categories: Category[]) {
+    super.writeCategoriesDefinitions(categories);
   }
 
   endGroup() {
@@ -258,9 +287,10 @@ export class AllureReporter extends Allure {
   public step<T>(
     name: string,
     body?: (step: StepInterface) => T,
+    start?: number,
     ...args: any[]
   ): any {
-    const allureStep = this.startStep(name);
+    const allureStep = this.startStep(name, start);
     let result;
 
     if (!body) {
@@ -335,11 +365,6 @@ export class AllureReporter extends Allure {
     const file = this.runtime.writeAttachment(content, type);
 
     this.currentExecutable.addAttachment(name, type, file);
-  }
-
-  addCategory(category: Category): void {
-    // todo check if the same exist
-    this.categories.push(category);
   }
 
   addPackage(value: string) {
