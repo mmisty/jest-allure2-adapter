@@ -1,9 +1,9 @@
 {
   "name": "jest-allure2-adapter",
-  "version": "0.1.23",
+  "version": "0.2.0",
   "description": "Allure 2 Adapter for jest",
-  "main": "dist/index",
-  "types": "dist/index.d.ts",
+  "main": "index",
+  "types": "index.d.ts",
   "repository": "git@github.com:mmisty/jest-allure2-adapter.git",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
