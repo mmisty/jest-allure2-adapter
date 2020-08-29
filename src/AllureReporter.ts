@@ -9,16 +9,17 @@ import {
   ContentType,
   ExecutableItemWrapper,
   IAllureConfig,
-  isPromise,
   LabelName,
   LinkType,
   Stage,
   Status,
   StepInterface,
   Severity,
+  isPromise,
 } from 'allure-js-commons';
 import stripAnsi from 'strip-ansi';
 import { relative } from 'path';
+import { AllureReporterApi, jasmine_ } from './index';
 
 enum SpecStatus {
   PASSED = 'passed',
@@ -47,10 +48,10 @@ export const dateStr = () => {
     date.getMilliseconds()
   );
 };
-export class AllureReporter extends Allure {
+
+export class AllureReporter extends Allure implements AllureReporterApi {
   private runningTest: AllureTest | null = null;
   private runningGroup: AllureGroup | null = null;
-  private runningExecutable: ExecutableItemWrapper | null = null;
   private groupStack: AllureGroup[] = [];
   private groupNameStack: string[] = [];
   private stepStack: AllureStep[] = [];
@@ -84,9 +85,11 @@ export class AllureReporter extends Allure {
   startGroup(name: string) {
     // todo check currentgroup.startgroup
     // todo check empty name
+    // todo name fix to suite info
     this.runningGroup = this.runtime.startGroup(name);
     let nameGr = name;
 
+    // if name fullname
     for (let i = 0; i < this.groupStack.length + 1; i++) {
       if (this.groupStack.length > i) {
         for (let j = 0; j <= i; j++) {
@@ -101,7 +104,7 @@ export class AllureReporter extends Allure {
 
   // todo remove - change name someway
   // todo decorators
-  startTest(spec: any) {
+  startTest(spec: jasmine_.CustomReporterResult) {
     this.runningTest = this.currentGroup.startTest(spec.description);
     this.runningTest.fullName = spec.fullName;
 
@@ -180,8 +183,7 @@ export class AllureReporter extends Allure {
     }
   }
 
-  // todo type
-  endTest(spec: any) {
+  endTest(spec: jasmine_.CustomReporterResult) {
     this.endSteps();
 
     if (spec.status === SpecStatus.PASSED) {
@@ -384,7 +386,10 @@ export class AllureReporter extends Allure {
     return this;
   }
 
-  addTestPathParameter(relativeFrom: string, spec: any) {
+  addTestPathParameter(
+    relativeFrom: string,
+    spec: jasmine_.CustomReporterResult,
+  ) {
     const relativePath = relative(relativeFrom, spec.testPath);
     this.addParameter('Test Path', relativePath);
     return this;

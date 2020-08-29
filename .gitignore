@@ -24,3 +24,7 @@ node_modules/
 
 # test
 allure-results
+
+# pack
+package
+*.tgz

@@ -3,10 +3,7 @@
     "strict": true,
     "declaration": true,
     "suppressImplicitAnyIndexErrors": false,
-    "baseUrl": "./",
-    "paths": {
-      "jest-allure2-adapter/*": ["./*"]
-    },
+    "baseUrl": "./dist",
     "target": "es2015",
     "outDir": "./dist",
     "rootDir": "./src",
@@ -16,5 +13,5 @@
     "typeRoots": ["node_modules/@types"]
   },
   "include": ["src"],
-  "exclude": ["config", "examples-2"]
+  "exclude": ["config"]
 }

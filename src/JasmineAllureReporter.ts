@@ -1,37 +1,14 @@
-import { AllureReporter } from './AllureReporter';
 import { relative } from 'path';
+import { AllureReporterApi, jasmine_ } from './index';
 
-export declare namespace jasmine {
-  function getEnv(): any;
-  interface CustomReporter {
-    jasmineStarted?(suiteInfo: any): void;
-    suiteStarted?(result: CustomReporterResult): void;
-    specStarted?(result: CustomReporterResult): void;
-    specDone?(result: CustomReporterResult): void;
-    suiteDone?(result: CustomReporterResult): void;
-    jasmineDone?(runDetails: any): void;
-  }
-  interface CustomReporterResult {
-    description: string;
-    failedExpectations?: any[];
-    fullName: string;
-    id: string;
-    passedExpectations?: any[];
-    pendingReason?: string;
-    status?: string;
-  }
-}
+export class JasmineAllureReporter implements jasmine_.CustomReporter {
+  private allure: AllureReporterApi;
 
-// export const Categories: Category[] = []; // todo check may not work
-
-export class JasmineAllureReporter implements jasmine.CustomReporter {
-  private allure: AllureReporter;
-
-  constructor(allure: AllureReporter) {
+  constructor(allure: AllureReporterApi) {
     this.allure = allure;
   }
 
-  suiteStarted(suite?: jasmine.CustomReporterResult) {
+  suiteStarted(suite?: jasmine_.CustomReporterResult) {
     if (suite) {
       this.allure.startGroup(suite.fullName);
     } else {
@@ -46,11 +23,11 @@ export class JasmineAllureReporter implements jasmine.CustomReporter {
     this.allure.endGroup();
   }
 
-  specStarted(spec: jasmine.CustomReporterResult) {
+  specStarted(spec: jasmine_.CustomReporterResult) {
     this.allure.startTest(spec);
   }
 
-  specDone(spec: jasmine.CustomReporterResult) {
+  specDone(spec: jasmine_.CustomReporterResult) {
     this.allure.endTest(spec);
   }
 }
