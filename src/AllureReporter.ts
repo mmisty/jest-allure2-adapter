@@ -161,7 +161,6 @@ export class AllureReporter extends Allure {
       return name;
     };
     const groups = this.groupNameStack.map((p) => replaceDot(p));
-    groups.map;
     this.addPackage(groups.join('.'));
 
     if (groups.length > 0) {
@@ -407,7 +406,8 @@ export class AllureReporter extends Allure {
     /*if (!url) {
       throw new Error('Specify url or issueUri in config');
     }*/
-    this.issue(options.name ?? options.id, options.url ?? options.id);
+    const link = `${options.url}${options.id}`;
+    this.issue(options.name ?? options.id, link);
     return this;
   }
 
@@ -419,7 +419,8 @@ export class AllureReporter extends Allure {
     /*if (!uri) {
       throw new Error('Specify url or tmsUri in config');
     }*/
-    this.tms(options.name ?? options.id, options.url ?? options.id);
+    const link = `${options.url}${options.id}`;
+    this.tms(options.name ?? options.id, link);
 
     return this;
   }

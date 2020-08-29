@@ -160,6 +160,7 @@ describe("Fancy test", () => {
 
 #### What's next
 
+- [ ] Ability to implement own JasmineAllureReporter
 - [ ] Add before/after hooks
 - [ ] Add examples
 - [ ] Ability to config (timestamp to step, jira link)
