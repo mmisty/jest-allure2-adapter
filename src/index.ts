@@ -11,6 +11,8 @@ import {
   Status,
   StepInterface,
 } from 'allure-js-commons';
+import { AllureReporter } from './allure-reporter';
+import { JasmineAllureReporter } from './jasmine-allure-reporter';
 
 export declare namespace jasmine_ {
   interface CustomReporter {
@@ -82,6 +84,23 @@ export interface AllureReporterApi {
   testClass(testClass: string): void;
   testMethod(testMethod: string): void;
   severity(severity: Severity): void;
+}
+
+export function registerAllureReporter(
+  jasmineCustom?: (r: AllureReporterApi) => jasmine_.CustomReporter,
+) {
+  const reporter = ((global as any).reporter = new AllureReporter());
+  (jasmine as any)
+    .getEnv()
+    .addReporter(
+      jasmineCustom
+        ? jasmineCustom(reporter)
+        : new JasmineAllureReporter(reporter),
+    );
+}
+
+declare global {
+  export const reporter: AllureReporter;
 }
 
 declare namespace JestAllureReporter {

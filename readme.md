@@ -39,10 +39,10 @@ npm install --save-dev jest-allure2-adapter
 
 ### jest -v >24 ?
 
-Then add `jest-allure2-adapter/dist/setup` to `setupFilesAfterEnv` section of your config.
+Then add `jest-allure2-adapter/dist/setup-default` to `setupFilesAfterEnv` section of your config.
 
 ```
-setupFilesAfterEnv: ["jest-allure2-adapter/dist/setup"]
+setupFilesAfterEnv: ["jest-allure2-adapter/dist/setup-default"]
 ```
 
 ### jest -v < 24 ?
@@ -124,6 +124,63 @@ Global variable `reporter` available in your tests with such methods:
 
 ```
 
+## Custrom Jasmine reporter
+
+To use custom jasmine reporter - for example to add smth into allure when spec or suite started you can use custom jasmine reporter.
+In this case you do NOT need to add `jest-allure2-adapter/dist/setup-default` into SetupFilesAfterEnv section.
+Just call registerAllureReporter with yur custom jasmine reporter.
+
+see example:
+
+```json
+// jest.setup.ts
+...
+setupFilesAfterEnv: [
+    './config/jest-custom-reporter.ts',
+  ],
+...
+```
+
+```typescript
+// jest-custom-reporter.ts
+
+import {
+  AllureReporterApi,
+  jasmine_,
+  registerAllureReporter,
+} from 'jest-allure2-adapter';
+
+class JasmineAllureReporter implements jasmine_.CustomReporter {
+  private allure: AllureReporterApi;
+
+  constructor(allure: AllureReporterApi) {
+    this.allure = allure;
+  }
+
+  suiteStarted(suite?: jasmine_.CustomReporterResult) {
+    this.allure.startGroup(suite.description);
+    // some actions here on suite started
+  }
+
+  suiteDone() {
+    // some actions here on suite end
+    this.allure.endGroup();
+  }
+
+  specStarted(spec: jasmine_.CustomReporterResult) {
+    this.allure.startTest(spec);
+    // some actions here on test started
+  }
+
+  specDone(spec: jasmine_.CustomReporterResult) {
+    // some actions here on spec end
+    this.allure.endTest(spec);
+  }
+}
+
+registerAllureReporter((allure) => new JasmineAllureReporter(allure));
+```
+
 **Example (todo)**
 
 ```
@@ -160,7 +217,7 @@ describe("Fancy test", () => {
 
 #### What's next
 
-- [X] Ability to implement own JasmineAllureReporter (0.2.16)
+- [x] Ability to implement own JasmineAllureReporter (0.2.16)
 - [ ] Add before/after hooks
 - [ ] Add examples
 - [ ] Ability to config (timestamp to step, jira link)
