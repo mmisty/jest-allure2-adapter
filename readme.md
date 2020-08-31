@@ -230,10 +230,13 @@ describe("Fancy test", () => {
 **If you have your own setupTestFrameworkScriptFile file**, you need to manually register allure reporter, for it you need to import jest-allure/dist/setup.
 
 ```typescript
-import 'jest-allure2-adapter/dist/setup';
+import 'jest-allure2-adapter/dist/setup-default';
 ```
 
-In case if you have jest version > 24 just add `jest-allure/dist/setup` to `setupFilesAfterEnv` section of your config.
+In case if you have jest version > 24 just add `jest-allure/dist/setup-default` to `setupFilesAfterEnv` section of your config.
+
+## Releases
+0.2.23 default and custom reporter, timestamps in steps
 
 ## Contributors
 
