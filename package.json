@@ -1,6 +1,6 @@
 {
   "name": "jest-allure2-adapter",
-  "version": "0.2.27",
+  "version": "0.2.28",
   "description": "Allure 2 Adapter for jest",
   "main": "./dist/index",
   "types": "./dist/index.d.ts",
