@@ -1,4 +1,4 @@
-import { allure, allureT, delay } from '../src/test-helper';
+import { allure, allureT, delay } from '../test-helper';
 import { fail } from 'assert';
 import { ContentType } from 'allure-js-commons';
 

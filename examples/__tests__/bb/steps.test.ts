@@ -1,4 +1,4 @@
-import { allure, delay } from '../../src/test-helper';
+import { allure, delay } from '../../test-helper';
 import { Status } from 'allure-js-commons';
 
 async function delayNumber(

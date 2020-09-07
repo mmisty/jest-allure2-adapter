@@ -1,6 +1,7 @@
-import { allure } from '../src/test-helper';
+import { allure } from '../test-helper';
 
 describe('simple-suite', () => {
+  allure.feature('feature1');
   it('simple-test', () => {
     expect(10).toBe(10);
   });

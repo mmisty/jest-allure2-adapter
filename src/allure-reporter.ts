@@ -71,13 +71,19 @@ export const dateStrShort = () => {
 export class AllureReporter extends Allure implements AllureReporterApi {
   private runningTest: AllureTest | null = null;
   private runningGroup: AllureGroup | null = null;
-  private groupStack: AllureGroup[] = [];
+  // private groupStack: AllureGroup[] = [];
   private groupNameStack: string[] = [];
   private stepStack: AllureStep[] = [];
   private currentStepStatus: {
     status: Status;
     details?: StatusDetails;
   } | null = null;
+
+  private featureForSuite: string | null = null;
+  private storyForSuite: string | null = null;
+  private featureForTest: string | null = null;
+  private storyForTest: string | null = null;
+
   private environmentInfo: Record<string, string> = {};
 
   constructor(config?: IAllureConfig) {
@@ -109,7 +115,7 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     // todo check empty name
     this.runningGroup = this.runtime.startGroup(name);
     this.groupNameStack.push(name);
-    this.groupStack.push(this.currentGroup);
+    // this.groupStack.push(this.currentGroup);
   }
 
   // todo decorators
@@ -241,10 +247,10 @@ export class AllureReporter extends Allure implements AllureReporterApi {
       this.subSuite(groups[2]);
     }
 
-    if (groups.length > 3) {
+    /*if (groups.length > 3) {
       this.currentTest.name =
         groups.slice(3).join(' > ') + ' \n >> ' + specDescritption;
-    }
+    }*/
   }
 
   endTest(spec: jasmine_.CustomReporterResult) {
@@ -300,6 +306,16 @@ export class AllureReporter extends Allure implements AllureReporterApi {
       }
     }
 
+    if (this.featureForSuite && this.featureForTest == null) {
+      super.feature(this.featureForSuite);
+    }
+    this.featureForTest = null;
+    // todo
+    if (this.storyForSuite && this.storyForTest == null) {
+      super.story(this.storyForSuite);
+    }
+    this.storyForTest = null;
+
     this.currentTest.endTest();
   }
 
@@ -327,7 +343,7 @@ export class AllureReporter extends Allure implements AllureReporterApi {
       afters: [],
       children: [],
     });
-    this.groupStack.pop();
+    // this.groupStack.pop();
     this.groupNameStack.pop();
     this.currentGroup.endGroup();
   }
@@ -529,12 +545,33 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     return this;
   }
 
-  feature(feature: string) {
-    super.feature(feature);
+  feature(feature: string): this {
+    if (this.runningTest !== null) {
+      super.feature(feature);
+      this.featureForTest = feature;
+      return this;
+    }
+
+    if (this.featureForSuite) {
+      throw new Error('Feature for suite can be set only once');
+    }
+
+    this.featureForSuite = feature;
+    return this;
   }
 
-  story(story: string) {
-    super.story(story);
+  story(story: string): this {
+    if (this.runningTest !== null) {
+      super.story(story);
+      this.storyForTest = story;
+      return this;
+    }
+    if (this.storyForSuite) {
+      throw new Error('Story for suite can be set only once');
+    }
+
+    this.storyForSuite = story;
+    return this;
   }
 
   tag(tag: string) {

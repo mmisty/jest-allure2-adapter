@@ -1,5 +1,5 @@
 import { ContentType } from 'allure-js-commons';
-import { allure } from '../../src/test-helper';
+import { allure } from '../../test-helper';
 
 describe('check attachement', () => {
   it('type description', () => {

@@ -1,5 +1,4 @@
 import path from 'path';
-import Reporter = jest.Reporter;
 import {
   AllureStep,
   Attachment,
@@ -116,7 +115,7 @@ declare namespace JestAllureReporter {
   };
 }
 
-export default class JestAllureReporter implements Reporter {
+export default class JestAllureReporter implements jest.Reporter {
   private reporterOptions: JestAllureReporter.ReporterConfig;
 
   constructor(

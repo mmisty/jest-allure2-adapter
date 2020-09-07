@@ -1,4 +1,4 @@
-import { allure } from '../../src/test-helper';
+import { allure } from '../../test-helper';
 
 describe('simple-suite', () => {
   it('orange', () => {

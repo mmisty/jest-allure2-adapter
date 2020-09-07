@@ -1,4 +1,4 @@
-import { dateStr } from '../../src/allure-reporter';
+import { dateStr } from '../src/allure-reporter';
 
 export const allure = reporter;
 

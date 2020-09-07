@@ -1,4 +1,4 @@
-import { allure } from '../../src/test-helper';
+import { allure } from '../../test-helper';
 import { LabelName, Severity } from 'allure-js-commons';
 
 describe('reporter-suite', () => {
