@@ -238,8 +238,8 @@ In case if you have jest version > 24 just add `jest-allure/dist/setup-default` 
 
 ## Releases
 
+#### 0.2.44: step status without details when throws
 #### 0.2.43: feature for suite / story for suite
-
 #### 0.2.42: step status and status details
 
 #### 0.2.23 [stable] default and custom reporter, timestamps in steps

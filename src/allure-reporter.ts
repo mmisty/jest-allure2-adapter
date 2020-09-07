@@ -384,7 +384,7 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     try {
       result = allureStep.wrap(body)(args);
     } catch (error) {
-      this.endStep(Status.FAILED, undefined, { message: error.message });
+      this.endStep(Status.FAILED);
       throw error;
     }
 
@@ -401,7 +401,7 @@ export class AllureReporter extends Allure implements AllureReporterApi {
         })
         .catch((error) => {
           console.log('Result fail: isPromise');
-          this.endStep(Status.FAILED, undefined, { message: error.message });
+          this.endStep(Status.FAILED);
           throw error;
         });
     } else {
