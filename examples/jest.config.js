@@ -12,5 +12,5 @@ module.exports = {
   ],
   coverageDirectory: 'coverage',
   collectCoverageFrom: ['src/**/*.{ts,tsx,js,jsx}', '!src/**/*.d.ts'],
-  reporters: ['jest-allure2-adapter', { resultsDir: 'sdsddd' }],
+  reporters: ['../src/index.ts', { resultsDir: 'sdsddd' }],
 };

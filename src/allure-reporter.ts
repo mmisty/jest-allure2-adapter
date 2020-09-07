@@ -9,13 +9,14 @@ import {
   ContentType,
   ExecutableItemWrapper,
   IAllureConfig,
+  isPromise,
   LabelName,
   LinkType,
+  Severity,
   Stage,
   Status,
+  StatusDetails,
   StepInterface,
-  Severity,
-  isPromise,
 } from 'allure-js-commons';
 import stripAnsi from 'strip-ansi';
 import { relative } from 'path';
@@ -48,6 +49,24 @@ export const dateStr = () => {
     date.getMilliseconds()
   );
 };
+export const dateStrShort = () => {
+  const date = new Date(Date.now());
+  return (
+    date.getFullYear() +
+    '-' +
+    (date.getMonth() + 1) +
+    '-' +
+    date.getDate() +
+    'T' +
+    date.getUTCHours() +
+    '-' +
+    date.getMinutes() +
+    '-' +
+    date.getSeconds() +
+    '.' +
+    date.getMilliseconds()
+  );
+};
 
 export class AllureReporter extends Allure implements AllureReporterApi {
   private runningTest: AllureTest | null = null;
@@ -55,7 +74,10 @@ export class AllureReporter extends Allure implements AllureReporterApi {
   private groupStack: AllureGroup[] = [];
   private groupNameStack: string[] = [];
   private stepStack: AllureStep[] = [];
-  private stepNameStack: string[] = [];
+  private currentStepStatus: {
+    status: Status;
+    details?: StatusDetails;
+  } | null = null;
   private environmentInfo: Record<string, string> = {};
 
   constructor(config?: IAllureConfig) {
@@ -85,24 +107,11 @@ export class AllureReporter extends Allure implements AllureReporterApi {
   startGroup(name: string) {
     // todo check currentgroup.startgroup
     // todo check empty name
-    // todo name fix to suite info
     this.runningGroup = this.runtime.startGroup(name);
-    let nameGr = name;
-
-    // if name fullname
-    for (let i = 0; i < this.groupStack.length + 1; i++) {
-      if (this.groupStack.length > i) {
-        for (let j = 0; j <= i; j++) {
-          nameGr = name.replace(this.groupStack[j].name, '');
-        }
-      }
-    }
-
-    this.groupNameStack.push(nameGr);
+    this.groupNameStack.push(name);
     this.groupStack.push(this.currentGroup);
   }
 
-  // todo remove - change name someway
   // todo decorators
   startTest(spec: jasmine_.CustomReporterResult) {
     this.runningTest = this.currentGroup.startTest(spec.description);
@@ -116,43 +125,97 @@ export class AllureReporter extends Allure implements AllureReporterApi {
       );
     }
 
-    this.applyGroupping(spec);
+    this.applyGroupping(spec.description);
   }
 
   startStep(name: string, start?: number): AllureStep {
+    // todo configurable
     const allureStep = this.currentExecutable.startStep(
       dateStr() + ' | ' + name,
       start,
     );
     this.stepStack.push(allureStep);
-    this.stepNameStack.push(name);
     return allureStep;
   }
 
-  endStep(status?: Status, stage?: Stage, end?: number) {
-    // console.log('END:' + JSON.stringify(this.stepNameStack));
+  stepStatus(status: Status, details?: StatusDetails) {
+    if (this.currentStep) {
+      this.currentStepStatus = { status: status, details: details };
+    }
+  }
+  private getAttachFile(content: StatusDetails, type: ContentType) {
+    let buffer: any = JSON.stringify(content);
+    const message = content.message; // ? stripAnsi(content.message) : undefined;
+    const trace = content.trace; // ? stripAnsi(content.trace): undefined;
+    if (message && !trace) {
+      buffer = message;
+      return this.runtime.writeAttachment(buffer, ContentType.TEXT);
+    }
+    if (type === ContentType.JSON) {
+      //todo strip ansi??
+      const newTrace = trace?.split('\n');
+      buffer = JSON.stringify(
+        {
+          message,
+          trace: newTrace,
+        },
+        undefined,
+        '  ',
+      );
+    }
+    if (type === ContentType.CSV) {
+      buffer = `${message}\n${trace}`;
+    }
+
+    return this.runtime.writeAttachment(buffer, type);
+  }
+
+  endStep(
+    status?: Status,
+    stage?: Stage,
+    details?: StatusDetails,
+    end?: number,
+  ) {
     const step = this.stepStack.pop();
-    this.stepNameStack.pop();
 
     if (!step) {
       console.log('No step started');
-      // throw new Error('No step started');
       return;
     }
     step.stage = stage ?? Stage.FINISHED;
+
+    if (this.currentStepStatus?.status) {
+      step.status = this.currentStepStatus.status;
+      if (this.currentStepStatus.details) {
+        step.statusDetails = this.currentStepStatus.details;
+      }
+    }
+
+    if (details) {
+      // todo: status details does not work in report, workaround below
+      const type = ContentType.JSON;
+      const file = this.getAttachFile(details, type);
+      step.addAttachment('StatusDetails_' + dateStrShort(), type, file);
+    }
+
     if (status) {
       step.status = status;
     }
+    if (details) {
+      step.statusDetails = details;
+    }
+
     step.endStep(end);
+    this.currentStepStatus = null;
   }
 
   private endSteps() {
     while (this.currentStep !== null) {
-      this.endStep(Status.FAILED);
+      this.endStep(Status.BROKEN);
     }
   }
 
-  private applyGroupping(spec: any): void {
+  private applyGroupping(specDescritption: string): void {
     const replaceDot = (name: string): string => {
       // todo regexp with \s
       if (name.substr(0, 1) === '.') {
@@ -177,9 +240,10 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     if (groups.length > 2) {
       this.subSuite(groups[2]);
     }
+
     if (groups.length > 3) {
       this.currentTest.name =
-        groups.slice(3).join(' > ') + ' \n >> ' + spec.description;
+        groups.slice(3).join(' > ') + ' \n >> ' + specDescritption;
     }
   }
 
@@ -220,14 +284,16 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     if (exceptionInfo !== null && typeof exceptionInfo.message === 'string') {
       let { message } = exceptionInfo;
 
-      message = stripAnsi(message);
+      // message = stripAnsi(message);
+      message = message;
 
       this.currentTest.detailsMessage = message;
 
       if (exceptionInfo.stack && typeof exceptionInfo.stack === 'string') {
         let { stack } = exceptionInfo;
 
-        stack = stripAnsi(stack);
+        // stack = stripAnsi(stack);
+        stack = stack;
         stack = stack.replace(message, '');
 
         this.currentTest.detailsTrace = stack;
@@ -302,7 +368,7 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     try {
       result = allureStep.wrap(body)(args);
     } catch (error) {
-      this.endStep(Status.FAILED);
+      this.endStep(Status.FAILED, undefined, { message: error.message });
       throw error;
     }
 
@@ -310,16 +376,24 @@ export class AllureReporter extends Allure implements AllureReporterApi {
       const promise = result as Promise<any>;
       return promise
         .then((a) => {
-          this.endStep(Status.PASSED);
+          this.endStep(
+            this.currentStepStatus?.status ?? Status.PASSED,
+            undefined,
+            this.currentStepStatus?.details,
+          );
           return a;
         })
         .catch((error) => {
           console.log('Result fail: isPromise');
-          this.endStep(Status.FAILED);
+          this.endStep(Status.FAILED, undefined, { message: error.message });
           throw error;
         });
     } else {
-      this.endStep(Status.PASSED);
+      this.endStep(
+        this.currentStepStatus?.status ?? Status.PASSED,
+        undefined,
+        this.currentStepStatus?.details,
+      );
       return result;
     }
   }

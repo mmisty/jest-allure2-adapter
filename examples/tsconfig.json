@@ -14,10 +14,10 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
     "noUnusedLocals": false,
-    "noUnusedParameters": true,
+    "noUnusedParameters": false,
     "noImplicitAny": false,
     "noImplicitThis": false,
     "strictNullChecks": false
   },
-  "include": ["src/**/*", "__tests__/**/*", "node_modules/jest-allure2-adapter"]
+  "include": ["src/**/*", "__tests__/**/*", "../src/index.ts"]
 }

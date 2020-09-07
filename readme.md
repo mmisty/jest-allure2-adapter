@@ -221,13 +221,14 @@ describe("Fancy test", () => {
 - [ ] Add before/after hooks
 - [ ] Add examples
 - [ ] Ability to config (timestamp to step, jira link)
+- [ ] historyId?
 
 ---
 
 #### Warning
 
 `jest-allure2-adapter` reporter dynamically configure "setupTestFrameworkScriptFile" option in Jest configuration.
-**If you have your own setupTestFrameworkScriptFile file**, you need to manually register allure reporter, for it you need to import jest-allure/dist/setup.
+**If you have your own setupTestFrameworkScriptFile file**, you need to manually register allure reporter, for it you need to import jest-allure/dist/setup-default.
 
 ```typescript
 import 'jest-allure2-adapter/dist/setup-default';
@@ -236,7 +237,9 @@ import 'jest-allure2-adapter/dist/setup-default';
 In case if you have jest version > 24 just add `jest-allure/dist/setup-default` to `setupFilesAfterEnv` section of your config.
 
 ## Releases
-0.2.23 default and custom reporter, timestamps in steps
+
+#### 0.2.42: fix defect
+#### 0.2.23 [stable] default and custom reporter, timestamps in steps
 
 ## Contributors
 

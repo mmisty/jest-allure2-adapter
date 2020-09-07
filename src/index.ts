@@ -10,6 +10,7 @@ import {
   Stage,
   Status,
   StepInterface,
+  StatusDetails,
 } from 'allure-js-commons';
 import { AllureReporter } from './allure-reporter';
 import { JasmineAllureReporter } from './jasmine-allure-reporter';
@@ -38,7 +39,13 @@ export interface AllureReporterApi {
   startGroup(name: string): void;
   startTest(spec: jasmine_.CustomReporterResult): void;
   startStep(name: string, start?: number): AllureStep;
-  endStep(status?: Status, stage?: Stage, end?: number): void;
+  stepStatus(status: Status, details?: StatusDetails): void;
+  endStep(
+    status?: Status,
+    stage?: Stage,
+    details?: StatusDetails,
+    end?: number,
+  ): void;
   endTest(spec: jasmine_.CustomReporterResult): void;
   writeCategories(categories: Category[]): void;
   endGroup(): void;
@@ -125,7 +132,7 @@ export default class JestAllureReporter implements Reporter {
     options: jest.ReporterOnStartOptions,
   ) {}
   onTestStart(test: jest.Test) {
-    const setupPath = require.resolve('./setup');
+    const setupPath = require.resolve('./setup-default');
     const setupTestFrameworkScriptFile =
       test.context.config.setupTestFrameworkScriptFile;
     if (!setupTestFrameworkScriptFile) {

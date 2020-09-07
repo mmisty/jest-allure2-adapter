@@ -10,7 +10,7 @@ export class JasmineAllureReporter implements jasmine_.CustomReporter {
 
   suiteStarted(suite?: jasmine_.CustomReporterResult) {
     if (suite) {
-      this.allure.startGroup(suite.fullName);
+      this.allure.startGroup(suite.description);
     } else {
       // case for tests without suite
       this.allure.startGroup(

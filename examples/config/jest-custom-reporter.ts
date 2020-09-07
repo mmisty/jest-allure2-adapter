@@ -1,9 +1,5 @@
-import {
-  AllureReporterApi,
-  jasmine_,
-  registerAllureReporter,
-} from 'jest-allure2-adapter';
 import { relative } from 'path';
+import { AllureReporterApi, jasmine_, registerAllureReporter } from '../../src';
 
 class JasmineAllureReporter implements jasmine_.CustomReporter {
   private allure: AllureReporterApi;
