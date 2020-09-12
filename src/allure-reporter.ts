@@ -18,9 +18,9 @@ import {
   StatusDetails,
   StepInterface,
 } from 'allure-js-commons';
-import stripAnsi from 'strip-ansi';
 import { relative } from 'path';
 import { AllureReporterApi, jasmine_ } from './index';
+const stripAnsi = require('strip-ansi');
 
 enum SpecStatus {
   PASSED = 'passed',
@@ -71,12 +71,11 @@ export const dateStrShort = () => {
 export class AllureReporter extends Allure implements AllureReporterApi {
   private runningTest: AllureTest | null = null;
   private runningGroup: AllureGroup | null = null;
-  // private groupStack: AllureGroup[] = [];
   private groupNameStack: string[] = [];
   private stepStack: AllureStep[] = [];
   private currentStepStatus: {
     status: Status;
-    details?: StatusDetails;
+    details?: StatusDetails | any;
   } | null = null;
 
   private featureForSuite: string | null = null;
@@ -115,7 +114,6 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     // todo check empty name
     this.runningGroup = this.runtime.startGroup(name);
     this.groupNameStack.push(name);
-    // this.groupStack.push(this.currentGroup);
   }
 
   // todo decorators
@@ -127,11 +125,11 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     if (process.env.JEST_WORKER_ID) {
       this.currentTest.addLabel(
         LabelName.THREAD,
-        `${process.env.JEST_WORKER_ID}`,
+        `${('0' + Number(process.env.JEST_WORKER_ID)).slice(-2)}`,
       );
     }
 
-    this.applyGroupping(spec.description);
+    this.applyGroupping();
   }
 
   startStep(name: string, start?: number): AllureStep {
@@ -144,42 +142,20 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     return allureStep;
   }
 
-  stepStatus(status: Status, details?: StatusDetails) {
+  stepStatus(status: Status, details?: StatusDetails | any) {
     if (this.currentStep) {
       this.currentStepStatus = { status: status, details: details };
     }
   }
-  private getAttachFile(content: StatusDetails, type: ContentType) {
-    let buffer: any = JSON.stringify(content);
-    const message = content.message; // ? stripAnsi(content.message) : undefined;
-    const trace = content.trace; // ? stripAnsi(content.trace): undefined;
-    if (message && !trace) {
-      buffer = message;
-      return this.runtime.writeAttachment(buffer, ContentType.TEXT);
-    }
-    if (type === ContentType.JSON) {
-      //todo strip ansi??
-      const newTrace = trace?.split('\n');
-      buffer = JSON.stringify(
-        {
-          message,
-          trace: newTrace,
-        },
-        undefined,
-        '  ',
-      );
-    }
-    if (type === ContentType.CSV) {
-      buffer = `${message}\n${trace}`;
-    }
 
-    return this.runtime.writeAttachment(buffer, type);
+  private getAttachFile(content: string, type: ContentType) {
+    return this.runtime.writeAttachment(stripAnsi(content), type);
   }
 
   endStep(
     status?: Status,
     stage?: Stage,
-    details?: StatusDetails,
+    details?: StatusDetails | any,
     end?: number,
   ) {
     const step = this.stepStack.pop();
@@ -190,11 +166,15 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     }
     step.stage = stage ?? Stage.FINISHED;
 
-    if (this.currentStepStatus?.status) {
-      step.status = this.currentStepStatus.status;
-      if (this.currentStepStatus.details) {
-        step.statusDetails = this.currentStepStatus.details;
-      }
+    if (status) {
+      step.status = status;
+    }
+
+    if (details?.message || details?.trace) {
+      step.statusDetails = {
+        message: details.message,
+        trace: details.trace,
+      };
     }
 
     if (details) {
@@ -202,13 +182,6 @@ export class AllureReporter extends Allure implements AllureReporterApi {
       const type = ContentType.JSON;
       const file = this.getAttachFile(details, type);
       step.addAttachment('StatusDetails_' + dateStrShort(), type, file);
-    }
-
-    if (status) {
-      step.status = status;
-    }
-    if (details) {
-      step.statusDetails = details;
     }
 
     step.endStep(end);
@@ -221,7 +194,7 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     }
   }
 
-  private applyGroupping(specDescritption: string): void {
+  private applyGroupping(): void {
     const replaceDot = (name: string): string => {
       // todo regexp with \s
       if (name.substr(0, 1) === '.') {
@@ -246,11 +219,6 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     if (groups.length > 2) {
       this.subSuite(groups[2]);
     }
-
-    /*if (groups.length > 3) {
-      this.currentTest.name =
-        groups.slice(3).join(' > ') + ' \n >> ' + specDescritption;
-    }*/
   }
 
   endTest(spec: jasmine_.CustomReporterResult) {
@@ -290,16 +258,14 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     if (exceptionInfo !== null && typeof exceptionInfo.message === 'string') {
       let { message } = exceptionInfo;
 
-      // message = stripAnsi(message);
-      message = message;
+      message = stripAnsi(message);
 
       this.currentTest.detailsMessage = message;
 
       if (exceptionInfo.stack && typeof exceptionInfo.stack === 'string') {
         let { stack } = exceptionInfo;
 
-        // stack = stripAnsi(stack);
-        stack = stack;
+        stack = stripAnsi(stack, 0);
         stack = stack.replace(message, '');
 
         this.currentTest.detailsTrace = stack;
@@ -343,7 +309,6 @@ export class AllureReporter extends Allure implements AllureReporterApi {
       afters: [],
       children: [],
     });
-    // this.groupStack.pop();
     this.groupNameStack.pop();
     this.currentGroup.endGroup();
   }
@@ -384,7 +349,11 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     try {
       result = allureStep.wrap(body)(args);
     } catch (error) {
-      this.endStep(Status.FAILED);
+      this.endStep(
+        this.currentStepStatus?.status ?? Status.FAILED,
+        undefined,
+        this.currentStepStatus?.details,
+      );
       throw error;
     }
 
@@ -401,7 +370,11 @@ export class AllureReporter extends Allure implements AllureReporterApi {
         })
         .catch((error) => {
           console.log('Result fail: isPromise');
-          this.endStep(Status.FAILED);
+          this.endStep(
+            this.currentStepStatus?.status ?? Status.FAILED,
+            undefined,
+            this.currentStepStatus?.details,
+          );
           throw error;
         });
     } else {
@@ -443,7 +416,10 @@ export class AllureReporter extends Allure implements AllureReporterApi {
   }
 
   public attachment(name: string, content: Buffer | string, type: ContentType) {
-    const file = this.runtime.writeAttachment(content, type);
+    const file = this.runtime.writeAttachment(
+      typeof content === 'string' ? stripAnsi(content) : content,
+      type,
+    );
 
     this.currentTest.addAttachment(name, type, file);
   }

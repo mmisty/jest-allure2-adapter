@@ -38,11 +38,11 @@ export interface AllureReporterApi {
   startGroup(name: string): void;
   startTest(spec: jasmine_.CustomReporterResult): void;
   startStep(name: string, start?: number): AllureStep;
-  stepStatus(status: Status, details?: StatusDetails): void;
+  stepStatus(status: Status, details?: StatusDetails | any): void;
   endStep(
     status?: Status,
     stage?: Stage,
-    details?: StatusDetails,
+    details?: StatusDetails | any,
     end?: number,
   ): void;
   endTest(spec: jasmine_.CustomReporterResult): void;
