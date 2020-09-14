@@ -83,44 +83,57 @@ fancy stuff to your reports.
 Global variable `reporter` available in your tests with such methods:
 
 ```
-    description(description: string): this;
-    descriptionHtml(description: string): this;
-    severity(severity: Severity): this;
-    epic(epic: string): this;
-    feature(feature: string): this;
-    story(story: string): this;
-    owner(story: string): this;
-
-    step<T>(name: string, body: () => any): T;
-    startStep(name: string): this;
-    endStep(status?: Status): this;
-
-    addEnvironment(name: string, value: string): this;
-
-    addAttachment(name: string, buffer: any, type: string): this;
-    addTestAttachment(name: string, buffer: any, type: string): this;
-
-    addLabel(name: string, value: string): this;
-    addParameter(paramName: string, name: string, value: string): this;
-    addParameters(...params: [string, any][]): this;
-
-    addLink(options: {
-        name?: string;
-        url: string;
-        type?: LinkType;
-    }): this;
-
-    addIssue(options: {
-        id: string;
-        name?: string;
-        url?: string;
-    }): this;
-
-    addTms(options: {
-        id: string;
-        name?: string;
-        url?: string;
-    }): this;
+    test: AllureCurrentApi; // actions for current test
+    
+      startGroup(name: string): void;
+      startTest(spec: jasmine_.CustomReporterResult): void;
+      startStep(name: string, start?: number): AllureStep;
+      stepStatus(status: Status, details?: StatusDetails | any): void;
+      step<T>(
+        name: string,
+        body?: (step: StepInterface) => T,
+        start?: number,
+        ...args: any[]
+      ): any;
+      endStep(
+        status?: Status,
+        stage?: Stage,
+        details?: StatusDetails | any,
+        end?: number,
+      ): void;
+      endTest(spec: jasmine_.CustomReporterResult): void;
+      endGroup(): void;
+    
+      writeCategories(categories: Category[]): void;
+      addEnvironment(name: string, value: string): this;
+    
+      logStep(name: string, status: Status, attachments?: [Attachment]): void;
+    
+      attachment(name: string, content: Buffer | string, type?: ContentType): void;
+      addParameter(name: string, value: string): this;
+      addParameters(...params: [string, any][]): this;
+    
+      description(description: string): this; // sets description to current executable (test / step)
+      descriptionHtml(description: string): this; // sets description to current executable (test / step)
+      addDescription(description: string): void; // adds html description to test
+    
+      addPackage(value: string): this;
+      addLink(options: { name?: string; url: string; type?: LinkType }): this;
+      addIssue(options: { id: string; name?: string; url?: string }): this;
+      addTms(options: { id: string; name?: string; url?: string }): this;
+      addLabel(name: string, value: string): this;
+      feature(feature: string): void;
+      story(story: string): void;
+      tag(tag: string): void;
+      owner(owner: string): void;
+      lead(lead: string): void;
+      framework(framework: string): void;
+      language(language: string): void;
+      as_id(id: string): void;
+      host(host: string): void;
+      testClass(testClass: string): void;
+      testMethod(testMethod: string): void;
+      severity(severity: Severity): void;
 
 ```
 
@@ -178,7 +191,7 @@ class JasmineAllureReporter implements jasmine_.CustomReporter {
   }
 }
 
-registerAllureReporter((allure) => new JasmineAllureReporter(allure));
+registerAllureReporter(undefined, (allure) => new JasmineAllureReporter(allure));
 ```
 
 **Example (todo)**
@@ -215,12 +228,23 @@ describe("Fancy test", () => {
 
 ```
 
+### Cofiguration
+Oject of the following type can be added into registerAllureReporter as first argument.
+ 
+```javascript
+  resultsDir?: string;
+  stepTimestamp?: boolean;
+  addStepStatusDetailsAttachment?: boolean; // add attachment with step status details
+  tmsLink?: (id: string) => string;
+  issueLink?: (id: string) => string;
+```
+
 #### What's next
 
 - [x] Ability to implement own JasmineAllureReporter (0.2.16)
 - [ ] Add before/after hooks
 - [ ] Add examples
-- [x] Ability to config (timestamp to step, jira link)
+- [x] Ability to config (timestamp to step, jira link) (0.2.53)
 - [ ] historyId?
 
 ---
@@ -246,18 +270,27 @@ Todo: add example
 
 ## Releases
 
-#### 0.2.53:
+#### 0.3.0:
 
 - added ability to configure reporter:
   - resultsDir: where allure results are stored, default `allure-results`
-  - stepTimestamp: add time stamp to step or not, false by default
+  - stepTimestamp: add timestamp to step or not, false by default
   - addStepStatusDetailsAttachment: add step status details attachment (status details doesn't work in report, so this is workaround), buy default false
   - tmsLink / issueLink: links pattern for adding issues (`tmsLink: (id) => http://someissue.com/${id}`)
 
 #### 0.2.52:
 
+- added addDescription (adds html description to test). Previously there was only ability to SET description.
+
+  - ex:
+    ```javascript
+    allure.test.addDescription('<h1>Heading</h1><br>');
+    ...
+    allure.test.addDescription('line<br>');
+    ```
+    It will add description to test `<h1>Heading</h1><br>line<br>`
+
 - cleanup
-- added addDescription (adds new line with html description to test)
 
 #### 0.2.51:
 

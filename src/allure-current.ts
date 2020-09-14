@@ -62,10 +62,11 @@ export class AllureCurrent implements AllureCurrentApi {
 
   applyDescription() {
     if (this.descriptionParts.length > 0) {
-      this.descriptionHtml(this.descriptionParts.join('<br>'));
+      this.descriptionHtml(this.descriptionParts.join(''));
     }
     this.initDescription();
   }
+
   getDescription(): string[] {
     return this.descriptionParts;
   }

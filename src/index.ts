@@ -40,13 +40,12 @@ export interface AllureCurrentApi {
   addParameter(name: string, value: string): void;
   addParameters(...params: [string, any][]): this;
 
-  /** This is a description of the foo function. */
   description(description: string): void;
   descriptionHtml(description: string): void;
   addDescription(description: string): void;
 }
 export interface AllureReporterApi {
-  test: AllureCurrentApi;
+  test: AllureCurrentApi; // actions for current test
 
   startGroup(name: string): void;
   startTest(spec: jasmine_.CustomReporterResult): void;
@@ -76,9 +75,9 @@ export interface AllureReporterApi {
   addParameter(name: string, value: string): this;
   addParameters(...params: [string, any][]): this;
 
-  description(description: string): this;
-  descriptionHtml(description: string): this;
-  addDescription(description: string): void;
+  description(description: string): this; // sets description to current executable (test / step)
+  descriptionHtml(description: string): this; // sets description to current executable (test / step)
+  addDescription(description: string): void; // adds html description to test
 
   addPackage(value: string): this;
   addLink(options: { name?: string; url: string; type?: LinkType }): this;
