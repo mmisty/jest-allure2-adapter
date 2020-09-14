@@ -2,7 +2,7 @@
 
 Originally forked from jest-allure.
 
-#### Add more power to your tests using Jest-Allure. Easily generate nice reports at the end of the execution.
+Add more power to your tests using Jest-Allure. Easily generate nice reports at the end of the execution.
 
 [![Awesome](https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg)](https://github.com/jest-community/awesome-jest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -12,11 +12,22 @@ Originally forked from jest-allure.
 [![GitHub stars](https://img.shields.io/github/stars/zaqqaz/jest-allure.svg?style=social)](https://github.com/zaqqaz/jest-allure/stargazers)
 [![GitHub watchers](https://img.shields.io/github/watchers/zaqqaz/jest-allure.svg?style=social)](https://github.com/zaqqaz/jest-allure/watchers)
 
+## Table of Contents
+
+1. [Examples](#examples)
+2. [Installation](#installation)
+3. [Cofiguration](#cofiguration)
+4. [How to get a report](#how-to-get-a-report)
+5. [Advanced features](#advanced-features)
+   - [Custrom Jasmine reporter](#custrom-jasmine-reporter)
+   - [Warning](#warning)
+6. [What's next](#whats-next)
+7. [Feature Notes](#feature-notes)
+8. [Releases](#releases)
+
 #### Examples
 
 - todo
-
-<hr>
 
 ![Allure Report](https://user-images.githubusercontent.com/2823336/40350093-59cad576-5db1-11e8-8210-c4db3bf825a1.png)
 
@@ -25,7 +36,7 @@ shows a very concise representation of what have been tested in a neat web repor
 but allows everyone participating in the development process to extract maximum of useful
 information from everyday execution of tests.
 
-#### Installation
+### Installation
 
 ```
 yarn add -D jest-allure2-adapter
@@ -37,7 +48,7 @@ or
 npm install --save-dev jest-allure2-adapter
 ```
 
-### jest -v >24 ?
+#### jest -v >24 ?
 
 Then add `jest-allure2-adapter/dist/setup-default` to `setupFilesAfterEnv` section of your config.
 
@@ -45,7 +56,7 @@ Then add `jest-allure2-adapter/dist/setup-default` to `setupFilesAfterEnv` secti
 setupFilesAfterEnv: ["jest-allure2-adapter/dist/setup-default"]
 ```
 
-### jest -v < 24 ?
+#### jest -v < 24 ?
 
 #### add reporter to jest.config.js
 
@@ -57,7 +68,21 @@ Run tests. Results will be generated and stored in `allure-results` folder.
 
 ---
 
-#### How to get a report
+### Cofiguration
+
+Object of the following type can be added into registerAllureReporter as first argument.
+
+```javascript
+  resultsDir?: string;
+  stepTimestamp?: boolean;
+  addStepStatusDetailsAttachment?: boolean; // add attachment with step status details
+  tmsLink?: (id: string) => string;
+  issueLink?: (id: string) => string;
+```
+
+---
+
+### How to get a report
 
 You need to install the [CLI](https://github.com/allure-framework/allure2#download) in order to obtain a report.
 
@@ -75,7 +100,7 @@ If you want to generate html version, run in console
 allure generate
 ```
 
-# Advanced features
+## Advanced features
 
 You can add description, screenshots, steps, severity and lots of other
 fancy stuff to your reports.
@@ -84,7 +109,7 @@ Global variable `reporter` available in your tests with such methods:
 
 ```
     test: AllureCurrentApi; // actions for current test
-    
+
       startGroup(name: string): void;
       startTest(spec: jasmine_.CustomReporterResult): void;
       startStep(name: string, start?: number): AllureStep;
@@ -103,20 +128,20 @@ Global variable `reporter` available in your tests with such methods:
       ): void;
       endTest(spec: jasmine_.CustomReporterResult): void;
       endGroup(): void;
-    
+
       writeCategories(categories: Category[]): void;
       addEnvironment(name: string, value: string): this;
-    
+
       logStep(name: string, status: Status, attachments?: [Attachment]): void;
-    
+
       attachment(name: string, content: Buffer | string, type?: ContentType): void;
       addParameter(name: string, value: string): this;
       addParameters(...params: [string, any][]): this;
-    
+
       description(description: string): this; // sets description to current executable (test / step)
       descriptionHtml(description: string): this; // sets description to current executable (test / step)
       addDescription(description: string): void; // adds html description to test
-    
+
       addPackage(value: string): this;
       addLink(options: { name?: string; url: string; type?: LinkType }): this;
       addIssue(options: { id: string; name?: string; url?: string }): this;
@@ -137,7 +162,7 @@ Global variable `reporter` available in your tests with such methods:
 
 ```
 
-## Custrom Jasmine reporter
+### Custrom Jasmine reporter
 
 To use custom jasmine reporter - for example to add smth into allure when spec or suite started you can use custom jasmine reporter.
 In this case you do NOT need to add `jest-allure2-adapter/dist/setup-default` into SetupFilesAfterEnv section.
@@ -191,7 +216,10 @@ class JasmineAllureReporter implements jasmine_.CustomReporter {
   }
 }
 
-registerAllureReporter(undefined, (allure) => new JasmineAllureReporter(allure));
+registerAllureReporter(
+  undefined,
+  (allure) => new JasmineAllureReporter(allure),
+);
 ```
 
 **Example (todo)**
@@ -228,24 +256,9 @@ describe("Fancy test", () => {
 
 ```
 
-### Cofiguration
-Oject of the following type can be added into registerAllureReporter as first argument.
- 
-```javascript
-  resultsDir?: string;
-  stepTimestamp?: boolean;
-  addStepStatusDetailsAttachment?: boolean; // add attachment with step status details
-  tmsLink?: (id: string) => string;
-  issueLink?: (id: string) => string;
-```
+## What's next
 
-#### What's next
-
-- [x] Ability to implement own JasmineAllureReporter (0.2.16)
-- [ ] Add before/after hooks
-- [ ] Add examples
-- [x] Ability to config (timestamp to step, jira link) (0.2.53)
-- [ ] historyId?
+-[x] Ability to implement own JasmineAllureReporter (0.2.16) -[ ] Add before/after hooks -[ ] Add examples -[x] Ability to config (timestamp to step, jira link) (0.2.53) -[ ] historyId? -[ ] Add param to stepStatus to add attachment with details or not
 
 ---
 
@@ -260,7 +273,7 @@ import 'jest-allure2-adapter/dist/setup-default';
 
 In case if you have jest version > 24 just add `jest-allure/dist/setup-default` to `setupFilesAfterEnv` section of your config.
 
-### Feature Notes
+## Feature Notes
 
 #### Setting feature, story to all tests in file
 
@@ -275,7 +288,7 @@ Todo: add example
 - added ability to configure reporter:
   - resultsDir: where allure results are stored, default `allure-results`
   - stepTimestamp: add timestamp to step or not, false by default
-  - addStepStatusDetailsAttachment: add step status details attachment (status details doesn't work in report, so this is workaround), buy default false
+  - addStepStatusDetailsAttachment: add step status details attachment (status details doesn't work in report, so this is workaround), false by default
   - tmsLink / issueLink: links pattern for adding issues (`tmsLink: (id) => http://someissue.com/${id}`)
 
 #### 0.2.52:
