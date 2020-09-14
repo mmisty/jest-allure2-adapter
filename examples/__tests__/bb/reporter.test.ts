@@ -9,9 +9,11 @@ describe('reporter-suite', () => {
     allure.addLabel('package', 'some package');
     allure.addLabel(LabelName.AS_ID, 'IDDDD');
     allure.addEnvironment('bvdd', 'sfsd');
-    allure.addLink({ name: 'BBB', url: 'Bla' });
-    allure.addIssue({ id: 'ABFX-000' });
-    allure.addTms({ id: 'ABFX-111' });
+    allure.addLink({ name: 'BBB', url: 'Bla.com' });
+    allure.addIssue({ id: 'ABFX-000', url: 'http://ggggg.com' });
+    allure.addIssue({ id: 'ABFX-NOURL' });
+    allure.addTms({ id: 'ABFX-111', url: 'http://bbbbbb.com' });
+    allure.addTms({ id: 'ABFX-NOURL' });
     allure.severity(Severity.BLOCKER);
     allure.description('Some desc 1 ');
     allure.tag('#testRunnerTag');

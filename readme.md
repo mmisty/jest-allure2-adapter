@@ -220,7 +220,7 @@ describe("Fancy test", () => {
 - [x] Ability to implement own JasmineAllureReporter (0.2.16)
 - [ ] Add before/after hooks
 - [ ] Add examples
-- [ ] Ability to config (timestamp to step, jira link)
+- [x] Ability to config (timestamp to step, jira link)
 - [ ] historyId?
 
 ---
@@ -246,9 +246,18 @@ Todo: add example
 
 ## Releases
 
+#### 0.2.53:
+
+- added ability to configure reporter:
+  - resultsDir: where allure results are stored, default `allure-results`
+  - stepTimestamp: add time stamp to step or not, false by default
+  - addStepStatusDetailsAttachment: add step status details attachment (status details doesn't work in report, so this is workaround), buy default false
+  - tmsLink / issueLink: links pattern for adding issues (`tmsLink: (id) => http://someissue.com/${id}`)
+
 #### 0.2.52:
 
 - cleanup
+- added addDescription (adds new line with html description to test)
 
 #### 0.2.51:
 

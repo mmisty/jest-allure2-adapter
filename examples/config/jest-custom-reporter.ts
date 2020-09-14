@@ -33,4 +33,12 @@ class JasmineAllureReporter implements jasmine_.CustomReporter {
   }
 }
 
-registerAllureReporter((a) => new JasmineAllureReporter(a));
+registerAllureReporter(
+  {
+    stepTimestamp: true,
+    addStepStatusDetailsAttachment: true,
+    tmsLink: (id) => `http://blahissue.com/${id}`,
+    issueLink: (id) => `http://issue.com/${id}`,
+  },
+  (a) => new JasmineAllureReporter(a),
+);

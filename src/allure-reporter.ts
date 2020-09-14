@@ -18,7 +18,12 @@ import {
   StatusDetails,
   StepInterface,
 } from 'allure-js-commons';
-import { AllureCurrentApi, AllureReporterApi, jasmine_ } from './index';
+import {
+  AllureAdapterConfig,
+  AllureCurrentApi,
+  AllureReporterApi,
+  jasmine_,
+} from './index';
 import { TestSuiteProps } from './test-suite-props';
 import { AllureCurrent } from './allure-current';
 import { dateStr, getContent } from './utils';
@@ -60,9 +65,10 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     () => this.currentExecutable,
   );
 
-  constructor(config?: IAllureConfig) {
-    // todo configure
-    super(new AllureRuntime(config ?? { resultsDir: 'allure-results' }));
+  constructor(private config?: AllureAdapterConfig) {
+    super(
+      new AllureRuntime({ resultsDir: config?.resultsDir ?? 'allure-results' }),
+    );
   }
 
   get test(): AllureCurrentApi {
@@ -122,9 +128,8 @@ export class AllureReporter extends Allure implements AllureReporterApi {
   }
 
   startStep(name: string, start?: number): AllureStep {
-    // todo configurable
     const allureStep = this.currentExecutable.startStep(
-      dateStr() + ' | ' + name,
+      (this.config?.stepTimestamp ? dateStr() + ' | ' : '') + name,
       start,
     );
     this.stepStack.push(allureStep);
@@ -162,7 +167,7 @@ export class AllureReporter extends Allure implements AllureReporterApi {
       };
     }
 
-    if (details) {
+    if (details && this.config?.addStepStatusDetailsAttachment) {
       // todo: status details does not work in report, workaround below
       const type = ContentType.JSON;
       const file = this.getAttachFile(details, type);
@@ -364,26 +369,26 @@ export class AllureReporter extends Allure implements AllureReporterApi {
   }
 
   addIssue(options: { id: string; name?: string; url?: string }) {
-    // todo config
-    /* options.url ??
-        (this.config?.issueUri ? this.config.issueUri(options.id) : undefined);*/
-    /*if (!url) {
-      throw new Error('Specify url or issueUri in config');
-    }*/
-    const link = `${options.url}${options.id}`;
+    if (!this.config?.issueLink && !options.url) {
+      throw new Error('Specify url or issueLink in config');
+    }
+    const link =
+      this.config?.issueLink && !options.url
+        ? this.config?.issueLink(options.id)
+        : `${options.url}${options.id}`;
     this.issue(options.name ?? options.id, link);
+
     return this;
   }
 
   addTms(options: { id: string; name?: string; url?: string }) {
-    // todo config
-    // const uri = 'some';
-    /* options.url ??
-        (this.config?.tmsUri ? this.config.tmsUri(options.id) : undefined);*/
-    /*if (!uri) {
-      throw new Error('Specify url or tmsUri in config');
-    }*/
-    const link = `${options.url}${options.id}`;
+    if (!this.config?.tmsLink && !options.url) {
+      throw new Error('Specify url or tmsLink in config');
+    }
+    const link =
+      this.config?.tmsLink && !options.url
+        ? this.config?.tmsLink(options.id)
+        : `${options.url}${options.id}`;
     this.tms(options.name ?? options.id, link);
 
     return this;

@@ -4,6 +4,7 @@ import {
   Attachment,
   Category,
   ContentType,
+  IAllureConfig,
   LinkType,
   Severity,
   Stage,
@@ -98,10 +99,20 @@ export interface AllureReporterApi {
   severity(severity: Severity): void;
 }
 
+export type AllureAdapterConfig = {
+  resultsDir?: string;
+  stepTimestamp?: boolean;
+  addStepStatusDetailsAttachment?: boolean; // add attachment with step status details
+  tmsLink?: (id: string) => string;
+  issueLink?: (id: string) => string;
+};
+
 export function registerAllureReporter(
+  config?: AllureAdapterConfig,
   jasmineCustom?: (r: AllureReporterApi) => jasmine_.CustomReporter,
 ) {
-  const reporter = ((global as any).reporter = new AllureReporter());
+  const reporter = ((global as any).reporter = new AllureReporter(config));
+
   (jasmine as any)
     .getEnv()
     .addReporter(
