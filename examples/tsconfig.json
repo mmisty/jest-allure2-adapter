@@ -7,7 +7,8 @@
     "allowJs": true,
     "importHelpers": true,
     "jsx": "react",
-    "outDir": "dist",
+    "outDir": "./dist",
+    "rootDir": "../",
     "alwaysStrict": true,
     "sourceMap": true,
     "forceConsistentCasingInFileNames": true,
@@ -19,5 +20,5 @@
     "noImplicitThis": false,
     "strictNullChecks": false
   },
-  "include": ["src/**/*", "__tests__/**/*", "../src/index.ts"]
+  "include": ["config/**/*", "__tests__/**/*", "../src/**/*"]
 }

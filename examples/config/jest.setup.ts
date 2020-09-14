@@ -1,5 +1,5 @@
 import { CustomConsole, LogMessage, LogType } from '@jest/console';
-import { dateStr } from '../../src/allure-reporter';
+import { dateStr } from '../date-utils';
 
 function simpleFormatter(type: LogType, message: LogMessage): string {
   const TITLE_INDENT = '    ';

@@ -236,9 +236,22 @@ import 'jest-allure2-adapter/dist/setup-default';
 
 In case if you have jest version > 24 just add `jest-allure/dist/setup-default` to `setupFilesAfterEnv` section of your config.
 
+### Feature Notes
+
+#### Setting feature, story to all tests in file
+
+As far as describe is async setting feature/story under describe or in any other place in the file except test will add feature/story to all tests in this file (feature/story can be overridden in test)
+
+Todo: add example
+
 ## Releases
 
+#### 0.2.52:
+
+- cleanup
+
 #### 0.2.51:
+
 - fix stepStatus details in case when step throws error
 
 #### 0.2.46:

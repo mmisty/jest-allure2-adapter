@@ -26,4 +26,36 @@ describe('check description', () => {
       __tests__
       `);
   });
+
+  it('desc to step(doesnt work in report)', () => {
+    allure.step('some first step', () => {
+      allure.descriptionHtml('desc for step');
+    });
+  });
+
+  it('desc to test from step', () => {
+    allure.step('some first step', () => {
+      allure.test.descriptionHtml('desc for test');
+    });
+  });
+
+  it('multiline desc', () => {
+    allure.step('some first step', () => {
+      allure.addDescription('line1');
+      allure.addDescription('line2');
+      allure.addDescription('line3');
+    });
+
+    allure.addDescription('line4');
+  });
+
+  it('multiline desc test', () => {
+    allure.step('some first step', () => {
+      allure.test.addDescription('line5');
+      allure.test.addDescription('line6');
+      allure.test.addDescription('line7');
+    });
+
+    allure.test.addDescription('line8');
+  });
 });

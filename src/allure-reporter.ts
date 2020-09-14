@@ -18,8 +18,11 @@ import {
   StatusDetails,
   StepInterface,
 } from 'allure-js-commons';
-import { relative } from 'path';
-import { AllureReporterApi, jasmine_ } from './index';
+import { AllureCurrentApi, AllureReporterApi, jasmine_ } from './index';
+import { TestSuiteProps } from './test-suite-props';
+import { AllureCurrent } from './allure-current';
+import { dateStr, getContent } from './utils';
+
 const stripAnsi = require('strip-ansi');
 
 enum SpecStatus {
@@ -31,41 +34,9 @@ enum SpecStatus {
   EXCLUDED = 'excluded',
   TODO = 'todo',
 }
-export const dateStr = () => {
-  const date = new Date(Date.now());
-  return (
-    date.getFullYear() +
-    '-' +
-    (date.getMonth() + 1) +
-    '-' +
-    date.getDate() +
-    ' ' +
-    date.getUTCHours() +
-    ':' +
-    date.getMinutes() +
-    ':' +
-    date.getSeconds() +
-    '.' +
-    date.getMilliseconds()
-  );
-};
-export const dateStrShort = () => {
-  const date = new Date(Date.now());
-  return (
-    date.getFullYear() +
-    '-' +
-    (date.getMonth() + 1) +
-    '-' +
-    date.getDate() +
-    'T' +
-    date.getUTCHours() +
-    '-' +
-    date.getMinutes() +
-    '-' +
-    date.getSeconds() +
-    '.' +
-    date.getMilliseconds()
-  );
+type StepStatus = {
+  status: Status;
+  details?: StatusDetails | any;
 };
 
 export class AllureReporter extends Allure implements AllureReporterApi {
@@ -73,28 +44,29 @@ export class AllureReporter extends Allure implements AllureReporterApi {
   private runningGroup: AllureGroup | null = null;
   private groupNameStack: string[] = [];
   private stepStack: AllureStep[] = [];
-  private currentStepStatus: {
-    status: Status;
-    details?: StatusDetails | any;
-  } | null = null;
+  private currentStepStatus: StepStatus | null = null;
 
-  private featureForSuite: string | null = null;
-  private storyForSuite: string | null = null;
-  private featureForTest: string | null = null;
-  private storyForTest: string | null = null;
+  private storyProps: TestSuiteProps = new TestSuiteProps();
+  private featureProps: TestSuiteProps = new TestSuiteProps();
 
   private environmentInfo: Record<string, string> = {};
 
+  private test_: AllureCurrent = new AllureCurrent(
+    this.runtime,
+    () => this.currentTest,
+  );
+  private executable: AllureCurrent = new AllureCurrent(
+    this.runtime,
+    () => this.currentExecutable,
+  );
+
   constructor(config?: IAllureConfig) {
+    // todo configure
     super(new AllureRuntime(config ?? { resultsDir: 'allure-results' }));
   }
 
-  get currentGroup(): AllureGroup {
-    if (this.runningGroup === null) {
-      throw new Error('No active group');
-    }
-
-    return this.runningGroup;
+  get test(): AllureCurrentApi {
+    return this.test_;
   }
 
   get currentTest(): AllureTest {
@@ -109,6 +81,22 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     return this.currentStep ?? this.currentTest;
   }
 
+  private get currentGroup(): AllureGroup {
+    if (this.runningGroup === null) {
+      throw new Error('No active group');
+    }
+
+    return this.runningGroup;
+  }
+
+  private get currentStep(): AllureStep | null {
+    if (this.stepStack.length > 0) {
+      return this.stepStack[this.stepStack.length - 1];
+    }
+
+    return null;
+  }
+
   startGroup(name: string) {
     // todo check currentgroup.startgroup
     // todo check empty name
@@ -120,6 +108,7 @@ export class AllureReporter extends Allure implements AllureReporterApi {
   startTest(spec: jasmine_.CustomReporterResult) {
     this.runningTest = this.currentGroup.startTest(spec.description);
     this.runningTest.fullName = spec.fullName;
+    this.executable.initDescription();
 
     // Capture Jest worker thread for timeline report
     if (process.env.JEST_WORKER_ID) {
@@ -146,10 +135,6 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     if (this.currentStep) {
       this.currentStepStatus = { status: status, details: details };
     }
-  }
-
-  private getAttachFile(content: string, type: ContentType) {
-    return this.runtime.writeAttachment(stripAnsi(content), type);
   }
 
   endStep(
@@ -181,44 +166,11 @@ export class AllureReporter extends Allure implements AllureReporterApi {
       // todo: status details does not work in report, workaround below
       const type = ContentType.JSON;
       const file = this.getAttachFile(details, type);
-      step.addAttachment('StatusDetails_' + dateStrShort(), type, file);
+      step.addAttachment('StatusDetails_' + dateStr(true), type, file);
     }
 
     step.endStep(end);
     this.currentStepStatus = null;
-  }
-
-  private endSteps() {
-    while (this.currentStep !== null) {
-      this.endStep(Status.BROKEN);
-    }
-  }
-
-  private applyGroupping(): void {
-    const replaceDot = (name: string): string => {
-      // todo regexp with \s
-      if (name.substr(0, 1) === '.') {
-        return name.substr(1, name.length - 1);
-      }
-      if (name.substr(name.length - 1) === '.') {
-        return name.substr(0, name.length - 1);
-      }
-      return name;
-    };
-    const groups = this.groupNameStack.map((p) => replaceDot(p));
-    this.addPackage(groups.join('.'));
-
-    if (groups.length > 0) {
-      this.parentSuite(groups[0]);
-    }
-
-    if (groups.length > 1) {
-      this.suite(groups[1]);
-    }
-
-    if (groups.length > 2) {
-      this.subSuite(groups[2]);
-    }
   }
 
   endTest(spec: jasmine_.CustomReporterResult) {
@@ -272,29 +224,10 @@ export class AllureReporter extends Allure implements AllureReporterApi {
       }
     }
 
-    if (this.featureForSuite && this.featureForTest == null) {
-      super.feature(this.featureForSuite);
-    }
-    this.featureForTest = null;
-    // todo
-    if (this.storyForSuite && this.storyForTest == null) {
-      super.story(this.storyForSuite);
-    }
-    this.storyForTest = null;
-
+    this.featureProps.apply((a) => super.feature(a));
+    this.storyProps.apply((a) => super.story(a));
+    this.applyDescription();
     this.currentTest.endTest();
-  }
-
-  get currentStep(): AllureStep | null {
-    if (this.stepStack.length > 0) {
-      return this.stepStack[this.stepStack.length - 1];
-    }
-
-    return null;
-  }
-
-  writeCategories(categories: Category[]) {
-    super.writeCategoriesDefinitions(categories);
   }
 
   endGroup() {
@@ -313,23 +246,8 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     this.currentGroup.endGroup();
   }
 
-  private findMessageAboutThrow(expectations?: any[]): any | null {
-    for (const expectation of expectations || []) {
-      if (expectation.matcherName === '') {
-        return expectation;
-      }
-    }
-
-    return null;
-  }
-
-  private findAnyError(expectations?: any[]): any | null {
-    expectations = expectations || [];
-    if (expectations.length > 0) {
-      return expectations[0];
-    }
-
-    return null;
+  writeCategories(categories: Category[]) {
+    super.writeCategoriesDefinitions(categories);
   }
 
   public step<T>(
@@ -393,10 +311,6 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     return this;
   }
 
-  writeAttachment(content: Buffer | string, type: ContentType): string {
-    return this.runtime.writeAttachment(content, type);
-  }
-
   public logStep(
     name: string,
     status: Status,
@@ -415,49 +329,28 @@ export class AllureReporter extends Allure implements AllureReporterApi {
                 wrappedStep.endStep();*/
   }
 
-  public attachment(name: string, content: Buffer | string, type: ContentType) {
-    const file = this.runtime.writeAttachment(
-      typeof content === 'string' ? stripAnsi(content) : content,
-      type,
-    );
-
-    this.currentTest.addAttachment(name, type, file);
-  }
-
-  public stepAttachement(
+  public attachment(
     name: string,
     content: Buffer | string,
-    type: ContentType,
+    type: ContentType = ContentType.JSON,
   ) {
-    const file = this.runtime.writeAttachment(content, type);
-
-    this.currentExecutable.addAttachment(name, type, file);
-  }
-
-  addPackage(value: string) {
-    this.currentTest.addLabel(LabelName.PACKAGE, value);
-    return this;
+    return this.executable.attachment(name, content, type);
   }
 
   addParameter(name: string, value: string) {
-    this.currentExecutable.addParameter(name, value);
+    this.executable.addParameter(name, value);
     return this;
   }
 
   addParameters(...params: [string, any][]) {
-    params.forEach((p) => {
-      const value = typeof p[1] !== 'string' ? JSON.stringify(p[1]) : p[1];
-      this.currentExecutable.addParameter(p[0], value);
-    });
+    this.executable.addParameters(...params);
     return this;
   }
 
-  addTestPathParameter(
-    relativeFrom: string,
-    spec: jasmine_.CustomReporterResult,
-  ) {
-    const relativePath = relative(relativeFrom, spec.testPath);
-    this.addParameter('Test Path', relativePath);
+  // for test
+
+  addPackage(value: string) {
+    this.currentTest.addLabel(LabelName.PACKAGE, value);
     return this;
   }
 
@@ -496,58 +389,31 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     return this;
   }
 
-  addAttachment(name: string, buffer: any, type: ContentType) {
-    this.stepAttachement(name, buffer, type);
-    return this;
-  }
-
-  addTestAttachment(name: string, buffer: any, type: ContentType) {
-    this.attachment(name, buffer, type);
-    return this;
-  }
-
   addLabel(name: string, value: string) {
     this.currentTest.addLabel(name, value);
     return this;
   }
 
+  addDescription(description: string): void {
+    this.test_.addDescription(description);
+  }
+
   description(description: string) {
-    this.currentTest.description = description;
+    this.executable.description(description);
     return this;
   }
 
   descriptionHtml(description: string) {
-    this.currentTest.descriptionHtml = description;
+    this.executable.descriptionHtml(description);
     return this;
   }
 
   feature(feature: string): this {
-    if (this.runningTest !== null) {
-      super.feature(feature);
-      this.featureForTest = feature;
-      return this;
-    }
-
-    if (this.featureForSuite) {
-      throw new Error('Feature for suite can be set only once');
-    }
-
-    this.featureForSuite = feature;
-    return this;
+    return this.featureStoryForSuite(this.featureProps, feature, 'FEATURE');
   }
 
   story(story: string): this {
-    if (this.runningTest !== null) {
-      super.story(story);
-      this.storyForTest = story;
-      return this;
-    }
-    if (this.storyForSuite) {
-      throw new Error('Story for suite can be set only once');
-    }
-
-    this.storyForSuite = story;
-    return this;
+    return this.featureStoryForSuite(this.storyProps, story, 'STORY');
   }
 
   tag(tag: string) {
@@ -588,5 +454,86 @@ export class AllureReporter extends Allure implements AllureReporterApi {
 
   severity(severity: Severity) {
     super.severity(severity);
+  }
+
+  private endSteps() {
+    while (this.currentStep !== null) {
+      this.endStep(Status.BROKEN);
+    }
+  }
+
+  private applyGroupping(): void {
+    const replaceDot = (name: string): string => {
+      // todo regexp with \s
+      if (name.substr(0, 1) === '.') {
+        return name.substr(1, name.length - 1);
+      }
+      if (name.substr(name.length - 1) === '.') {
+        return name.substr(0, name.length - 1);
+      }
+      return name;
+    };
+    const groups = this.groupNameStack.map((p) => replaceDot(p));
+    this.addPackage(groups.join('.'));
+
+    if (groups.length > 0) {
+      this.parentSuite(groups[0]);
+    }
+
+    if (groups.length > 1) {
+      this.suite(groups[1]);
+    }
+
+    if (groups.length > 2) {
+      this.subSuite(groups[2]);
+    }
+  }
+
+  private applyDescription() {
+    const testDesc = this.test_.getDescription();
+    if (testDesc.length) {
+      this.test_.applyDescription();
+    }
+  }
+
+  private findMessageAboutThrow(expectations?: any[]): any | null {
+    for (const expectation of expectations || []) {
+      if (expectation.matcherName === '') {
+        return expectation;
+      }
+    }
+
+    return null;
+  }
+
+  private findAnyError(expectations?: any[]): any | null {
+    expectations = expectations || [];
+    if (expectations.length > 0) {
+      return expectations[0];
+    }
+
+    return null;
+  }
+
+  private getAttachFile(content: string, type: ContentType) {
+    return this.runtime.writeAttachment(getContent(content, type), type);
+  }
+
+  private featureStoryForSuite(
+    prop: TestSuiteProps,
+    value: string,
+    type: 'STORY' | 'FEATURE',
+  ) {
+    if (this.runningTest) {
+      prop.testProp = value;
+      return this;
+    }
+
+    if (prop.suiteProp) {
+      throw new Error(type + ' for suite can be set only once');
+    }
+
+    prop.suiteProp = value;
+    return this;
   }
 }

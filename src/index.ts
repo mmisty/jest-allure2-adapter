@@ -8,8 +8,8 @@ import {
   Severity,
   Stage,
   Status,
-  StepInterface,
   StatusDetails,
+  StepInterface,
 } from 'allure-js-commons';
 import { AllureReporter } from './allure-reporter';
 import { JasmineAllureReporter } from './jasmine-allure-reporter';
@@ -34,11 +34,29 @@ export declare namespace jasmine_ {
     status?: string;
   }
 }
+export interface AllureCurrentApi {
+  attachment(name: string, content: Buffer | string, type?: ContentType): void;
+  addParameter(name: string, value: string): void;
+  addParameters(...params: [string, any][]): this;
+
+  /** This is a description of the foo function. */
+  description(description: string): void;
+  descriptionHtml(description: string): void;
+  addDescription(description: string): void;
+}
 export interface AllureReporterApi {
+  test: AllureCurrentApi;
+
   startGroup(name: string): void;
   startTest(spec: jasmine_.CustomReporterResult): void;
   startStep(name: string, start?: number): AllureStep;
   stepStatus(status: Status, details?: StatusDetails | any): void;
+  step<T>(
+    name: string,
+    body?: (step: StepInterface) => T,
+    start?: number,
+    ...args: any[]
+  ): any;
   endStep(
     status?: Status,
     stage?: Stage,
@@ -46,38 +64,26 @@ export interface AllureReporterApi {
     end?: number,
   ): void;
   endTest(spec: jasmine_.CustomReporterResult): void;
-  writeCategories(categories: Category[]): void;
   endGroup(): void;
-  step<T>(
-    name: string,
-    body?: (step: StepInterface) => T,
-    start?: number,
-    ...args: any[]
-  ): any;
+
+  writeCategories(categories: Category[]): void;
   addEnvironment(name: string, value: string): this;
-  writeAttachment(content: Buffer | string, type: ContentType): string;
+
   logStep(name: string, status: Status, attachments?: [Attachment]): void;
-  attachment(name: string, content: Buffer | string, type: ContentType): void;
-  stepAttachement(
-    name: string,
-    content: Buffer | string,
-    type: ContentType,
-  ): void;
-  addPackage(value: string): this;
+
+  attachment(name: string, content: Buffer | string, type?: ContentType): void;
   addParameter(name: string, value: string): this;
   addParameters(...params: [string, any][]): this;
-  addTestPathParameter(
-    relativeFrom: string,
-    spec: jasmine_.CustomReporterResult,
-  ): this;
+
+  description(description: string): this;
+  descriptionHtml(description: string): this;
+  addDescription(description: string): void;
+
+  addPackage(value: string): this;
   addLink(options: { name?: string; url: string; type?: LinkType }): this;
   addIssue(options: { id: string; name?: string; url?: string }): this;
   addTms(options: { id: string; name?: string; url?: string }): this;
-  addAttachment(name: string, buffer: any, type: ContentType): this;
-  addTestAttachment(name: string, buffer: any, type: ContentType): this;
   addLabel(name: string, value: string): this;
-  description(description: string): this;
-  descriptionHtml(description: string): this;
   feature(feature: string): void;
   story(story: string): void;
   tag(tag: string): void;
@@ -106,7 +112,7 @@ export function registerAllureReporter(
 }
 
 declare global {
-  export const reporter: AllureReporter;
+  export const reporter: AllureReporterApi;
 }
 
 declare namespace JestAllureReporter {

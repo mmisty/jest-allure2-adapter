@@ -10,11 +10,11 @@ describe('before-each-test', () => {
       await delay(100);
       const err = new Error('Fail in before each');
       beforeErr.push(err);
-      allure.addAttachment('err', err.message, ContentType.TEXT);
+      allure.attachment('err', err.message, ContentType.TEXT);
       throw err;
     });
 
-    allure.addTestAttachment('Test', 'sdasda', ContentType.TEXT);
+    allure.test.attachment('Test', 'sdasda', ContentType.TEXT);
   });
 
   // todo: adapter allure 2
