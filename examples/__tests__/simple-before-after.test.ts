@@ -1,16 +1,19 @@
 import { allure } from '../test-helper';
 
-describe('simple-suite', () => {
-  allure.feature('feature1');
-  it('simple-test', () => {
+describe('simple-suite-before-each', () => {
+  beforeEach(() => {
+    allure.step('before step');
+  });
+
+  afterEach(() => {
+    allure.step('after step');
+  });
+
+  it('1.simple-test', () => {
     expect(10).toBe(10);
   });
 
-  it('simple-test-2-fail#tag', async () => {
-    allure.step('some', () => {
-      allure.step('some', () => {
-        allure.step('some', () => expect(10).toBe(9));
-      });
-    });
+  it('2.simple-test4354', () => {
+    expect(10).toBe(10);
   });
 });

@@ -6,6 +6,7 @@ import {
   ExecutableItemWrapper,
 } from 'allure-js-commons';
 import { getContent } from './utils';
+import { AttachmentOptions } from 'allure-js-commons/dist/src/model';
 
 export class AllureCurrent implements AllureCurrentApi {
   protected descriptionParts: string[] = [];
@@ -23,7 +24,7 @@ export class AllureCurrent implements AllureCurrentApi {
   public attachment(
     name: string,
     content: Buffer | string,
-    type: ContentType = ContentType.JSON,
+    type: ContentType | string | AttachmentOptions = ContentType.JSON,
   ) {
     const file = this.runtime.writeAttachment(getContent(content, type), type);
     this.action((current) => current.addAttachment(name, type, file));

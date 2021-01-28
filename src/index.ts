@@ -14,6 +14,7 @@ import {
 } from 'allure-js-commons';
 import { AllureReporter } from './allure-reporter';
 import { JasmineAllureReporter } from './jasmine-allure-reporter';
+import { AttachmentOptions } from 'allure-js-commons/dist/src/model';
 
 export declare namespace jasmine_ {
   interface CustomReporter {
@@ -71,6 +72,7 @@ export interface AllureReporterApi {
 
   logStep(name: string, status: Status, attachments?: [Attachment]): void;
 
+  // todo: ContentType | string | AttachmentOptions
   attachment(name: string, content: Buffer | string, type?: ContentType): void;
   addParameter(name: string, value: string): this;
   addParameters(...params: [string, any][]): this;
@@ -78,6 +80,9 @@ export interface AllureReporterApi {
   description(description: string): this; // sets description to current executable (test / step)
   descriptionHtml(description: string): this; // sets description to current executable (test / step)
   addDescription(description: string): void; // adds html description to test
+
+  setFullName(fullName: string): void;
+  setHistoryId(uid: string): void;
 
   addPackage(value: string): this;
   addLink(options: { name?: string; url: string; type?: LinkType }): this;
@@ -102,6 +107,7 @@ export type AllureAdapterConfig = {
   resultsDir?: string;
   stepTimestamp?: boolean;
   addStepStatusDetailsAttachment?: boolean; // add attachment with step status details
+  historyIdByName?: boolean; // when false you need to set historyId manually
   tmsLink?: (id: string) => string;
   issueLink?: (id: string) => string;
 };

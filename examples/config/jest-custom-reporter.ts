@@ -3,6 +3,7 @@ import { AllureReporterApi, jasmine_, registerAllureReporter } from '../../src';
 
 class JasmineAllureReporter implements jasmine_.CustomReporter {
   private allure: AllureReporterApi;
+  private testIds: string[] = [];
 
   constructor(allure: AllureReporterApi) {
     this.allure = allure;
@@ -23,12 +24,23 @@ class JasmineAllureReporter implements jasmine_.CustomReporter {
     this.allure.endGroup();
   }
 
+  // 'Your test suite must contain at least one test.' -> when setting something to not started test
   specStarted(spec: jasmine_.CustomReporterResult) {
     this.allure.startTest(spec);
     this.allure.step('NON_DEFAULT');
   }
 
   specDone(spec: jasmine_.CustomReporterResult) {
+    // ex. need to have the same test in report even after test was renamed
+    const testId = spec.description.match(/(\d+)/)[1];
+
+    this.allure.setFullName(testId);
+    this.allure.setHistoryId(testId); // todo some parsing logic (ex id from spec name)
+    if (this.testIds.indexOf(testId) !== -1) {
+      spec.status = 'failed';
+      spec.failedExpectations.push({ message: 'DUPLICATE id ' + testId });
+    }
+    this.testIds.push(testId);
     this.allure.endTest(spec);
   }
 }
@@ -37,6 +49,7 @@ registerAllureReporter(
   {
     stepTimestamp: true,
     addStepStatusDetailsAttachment: true,
+    historyIdByName: false,
     tmsLink: (id) => `http://blahissue.com/${id}`,
     issueLink: (id) => `http://issue.com/${id}`,
   },

@@ -1,4 +1,5 @@
 import { ContentType } from 'allure-js-commons';
+import { AttachmentOptions } from 'allure-js-commons/dist/src/model';
 
 const stripAnsi = require('strip-ansi');
 
@@ -25,7 +26,10 @@ export const dateStr = (isFileName: boolean = false) => {
   );
 };
 
-export function getContent(content: Buffer | string, type: ContentType) {
+export function getContent(
+  content: Buffer | string,
+  type: ContentType | string | AttachmentOptions,
+) {
   if (typeof content === 'string') {
     return stripAnsi(content);
   }

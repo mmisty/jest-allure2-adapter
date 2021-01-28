@@ -27,6 +27,7 @@ import {
 import { TestSuiteProps } from './test-suite-props';
 import { AllureCurrent } from './allure-current';
 import { dateStr, getContent } from './utils';
+import { AttachmentOptions } from 'allure-js-commons/dist/src/model';
 
 const stripAnsi = require('strip-ansi');
 
@@ -178,11 +179,15 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     this.currentStepStatus = null;
   }
 
-  setHistoryId(fullName: string): void {
+  setHistoryId(uid: string): void {
     const getUuid = require('uuid-by-string');
-    const id = getUuid(fullName);
-    this.currentTest.historyId = id;
+    this.currentTest.historyId = getUuid(uid);
   }
+
+  setFullName(fullName: string): void {
+    this.currentTest.fullName = fullName;
+  }
+
   endTest(spec: jasmine_.CustomReporterResult) {
     this.endSteps();
 
@@ -237,7 +242,9 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     this.featureProps.apply((a) => super.feature(a));
     this.storyProps.apply((a) => super.story(a));
     this.applyDescription();
-    this.setHistoryId(spec.fullName);
+    if (this.config?.historyIdByName !== false) {
+      this.setHistoryId(spec.fullName);
+    }
     this.currentTest.endTest();
   }
 
@@ -343,7 +350,7 @@ export class AllureReporter extends Allure implements AllureReporterApi {
   public attachment(
     name: string,
     content: Buffer | string,
-    type: ContentType = ContentType.JSON,
+    type: ContentType | string | AttachmentOptions = ContentType.JSON,
   ) {
     return this.executable.attachment(name, content, type);
   }
