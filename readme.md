@@ -258,7 +258,13 @@ describe("Fancy test", () => {
 
 ## What's next
 
--[x] Ability to implement own JasmineAllureReporter (0.2.16) -[ ] Add before/after hooks -[ ] Add examples -[x] Ability to config (timestamp to step, jira link) (0.2.53) -[ ] historyId? -[ ] Add param to stepStatus to add attachment with details or not
+- [x] Ability to implement own JasmineAllureReporter (0.2.16)
+- [ ] Add before/after hooks
+- [ ] Add examples
+- [x] Ability to config (timestamp to step, jira link) (0.2.53)
+- [x] historyId (group retries)
+- [ ] Add param to stepStatus to add attachment with details or not
+- [ ] Cleanup statusDetails
 
 ---
 
@@ -282,6 +288,10 @@ As far as describe is async setting feature/story under describe or in any other
 Todo: add example
 
 ## Releases
+
+#### 0.3.5:
+
+- fixed grouping into retries
 
 #### 0.3.0:
 

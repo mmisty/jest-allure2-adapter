@@ -26,11 +26,13 @@ export const dateStr = (isFileName: boolean = false) => {
 };
 
 export function getContent(content: Buffer | string, type: ContentType) {
-  if (typeof content !== 'string' && type === ContentType.JSON) {
-    return JSON.stringify(content);
-  }
   if (typeof content === 'string') {
     return stripAnsi(content);
   }
+
+  if (type === ContentType.JSON) {
+    return JSON.stringify(content);
+  }
+
   return content;
 }

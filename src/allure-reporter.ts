@@ -178,6 +178,11 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     this.currentStepStatus = null;
   }
 
+  setHistoryId(fullName: string): void {
+    const getUuid = require('uuid-by-string');
+    const id = getUuid(fullName);
+    this.currentTest.historyId = id;
+  }
   endTest(spec: jasmine_.CustomReporterResult) {
     this.endSteps();
 
@@ -232,6 +237,7 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     this.featureProps.apply((a) => super.feature(a));
     this.storyProps.apply((a) => super.story(a));
     this.applyDescription();
+    this.setHistoryId(spec.fullName);
     this.currentTest.endTest();
   }
 

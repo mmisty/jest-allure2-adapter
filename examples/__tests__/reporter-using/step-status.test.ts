@@ -84,4 +84,24 @@ describe('step-status', () => {
       throw new Error('sfsefsdfsd');
     });*/
   });
+
+  it('Should add status details', async () => {
+    allure.step('Some failed step with details throws', () => {
+      let err: Error | undefined = undefined;
+      try {
+        allure.step('step1', () => {
+          throw new Error('Should add status details');
+        });
+      } catch (e) {
+        err = e;
+      }
+      allure.step('step2', () => {
+        expect(1).toBe(1);
+      });
+      allure.step('step3', () => {
+        expect(1).toBe(1);
+      });
+      throw err;
+    });
+  });
 });
