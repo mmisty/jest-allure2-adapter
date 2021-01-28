@@ -142,6 +142,9 @@ Global variable `reporter` available in your tests with such methods:
       descriptionHtml(description: string): this; // sets description to current executable (test / step)
       addDescription(description: string): void; // adds html description to test
 
+      setFullName(fullName: string): void;
+      setHistoryId(uid: string): void;
+
       addPackage(value: string): this;
       addLink(options: { name?: string; url: string; type?: LinkType }): this;
       addIssue(options: { id: string; name?: string; url?: string }): this;
