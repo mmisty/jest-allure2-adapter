@@ -292,8 +292,11 @@ Todo: add example
 
 ## Releases
 
-#### 0.3.6:
+#### 0.3.7:
 
+- framework label = 'jest' to tests by default (can be overridden)
+- language label = 'typescript/javascript' to tests by default (can be overridden)
+- host label to tests by default (can be overridden)
 - ability to setup historyId and fullName
 - added autoHistoryId into config (when false need to setup historyId manually to have correct retries, by default it is true and historyId is being generated from spec full name)
 

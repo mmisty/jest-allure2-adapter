@@ -54,6 +54,9 @@ export class AllureReporter extends Allure implements AllureReporterApi {
 
   private storyProps: TestSuiteProps = new TestSuiteProps();
   private featureProps: TestSuiteProps = new TestSuiteProps();
+  private frameworkProps: TestSuiteProps = new TestSuiteProps();
+  private languageProps: TestSuiteProps = new TestSuiteProps();
+  private hostProps: TestSuiteProps = new TestSuiteProps();
 
   private environmentInfo: Record<string, string> = {};
 
@@ -124,7 +127,12 @@ export class AllureReporter extends Allure implements AllureReporterApi {
         `${('0' + Number(process.env.JEST_WORKER_ID)).slice(-2)}`,
       );
     }
+    this.framework('jest');
+    this.language('typescript/javascript');
 
+    const os = require('os');
+    const hostname = os.hostname();
+    this.host(hostname);
     this.applyGroupping();
   }
 
@@ -241,6 +249,10 @@ export class AllureReporter extends Allure implements AllureReporterApi {
 
     this.featureProps.apply((a) => super.feature(a));
     this.storyProps.apply((a) => super.story(a));
+    this.frameworkProps.apply((a) => super.label(LabelName.FRAMEWORK, a));
+    this.languageProps.apply((a) => super.label(LabelName.LANGUAGE, a));
+    this.hostProps.apply((a) => super.label(LabelName.HOST, a));
+
     this.applyDescription();
     if (this.config?.autoHistoryId !== false) {
       this.setHistoryId(spec.fullName);
@@ -447,11 +459,11 @@ export class AllureReporter extends Allure implements AllureReporterApi {
   }
 
   framework(framework: string) {
-    super.label(LabelName.FRAMEWORK, framework);
+    this.frameworkProps.testProp = framework;
   }
 
   language(language: string) {
-    super.label(LabelName.LANGUAGE, language);
+    this.languageProps.testProp = language;
   }
 
   as_id(id: string) {
@@ -459,7 +471,7 @@ export class AllureReporter extends Allure implements AllureReporterApi {
   }
 
   host(host: string) {
-    super.label(LabelName.HOST, host);
+    this.hostProps.testProp = host;
   }
 
   testClass(testClass: string) {

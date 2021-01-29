@@ -27,6 +27,9 @@ class JasmineAllureReporter implements jasmine_.CustomReporter {
   // 'Your test suite must contain at least one test.' -> when setting something to not started test
   specStarted(spec: jasmine_.CustomReporterResult) {
     this.allure.startTest(spec);
+
+    this.allure.framework('JEST overridden');
+    // this.allure.host('HOST overridden');
     this.allure.step('NON_DEFAULT');
   }
 
@@ -34,7 +37,7 @@ class JasmineAllureReporter implements jasmine_.CustomReporter {
     // ex. need to have the same test in report even after test was renamed
     const testId = spec.description.match(/(\d+)/)[1];
 
-    this.allure.setFullName(testId);
+    // this.allure.setFullName(testId);
     if (this.testIds.indexOf(testId) !== -1) {
       spec.status = 'failed';
       spec.failedExpectations.push({ message: 'DUPLICATE id ' + testId });
@@ -48,7 +51,7 @@ registerAllureReporter(
   {
     stepTimestamp: true,
     addStepStatusDetailsAttachment: true,
-    autoHistoryId: false,
+    // autoHistoryId: false,
     tmsLink: (id) => `http://blahissue.com/${id}`,
     issueLink: (id) => `http://issue.com/${id}`,
   },
