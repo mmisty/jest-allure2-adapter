@@ -242,7 +242,7 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     this.featureProps.apply((a) => super.feature(a));
     this.storyProps.apply((a) => super.story(a));
     this.applyDescription();
-    if (this.config?.historyIdByName !== false) {
+    if (this.config?.autoHistoryId !== false) {
       this.setHistoryId(spec.fullName);
     }
     this.currentTest.endTest();

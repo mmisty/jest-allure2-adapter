@@ -35,7 +35,6 @@ class JasmineAllureReporter implements jasmine_.CustomReporter {
     const testId = spec.description.match(/(\d+)/)[1];
 
     this.allure.setFullName(testId);
-    this.allure.setHistoryId(testId); // todo some parsing logic (ex id from spec name)
     if (this.testIds.indexOf(testId) !== -1) {
       spec.status = 'failed';
       spec.failedExpectations.push({ message: 'DUPLICATE id ' + testId });
@@ -49,7 +48,7 @@ registerAllureReporter(
   {
     stepTimestamp: true,
     addStepStatusDetailsAttachment: true,
-    historyIdByName: false,
+    autoHistoryId: false,
     tmsLink: (id) => `http://blahissue.com/${id}`,
     issueLink: (id) => `http://issue.com/${id}`,
   },

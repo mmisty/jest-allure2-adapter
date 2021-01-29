@@ -107,7 +107,7 @@ export type AllureAdapterConfig = {
   resultsDir?: string;
   stepTimestamp?: boolean;
   addStepStatusDetailsAttachment?: boolean; // add attachment with step status details
-  historyIdByName?: boolean; // when false you need to set historyId manually
+  autoHistoryId?: boolean; // when false you need to set historyId manually
   tmsLink?: (id: string) => string;
   issueLink?: (id: string) => string;
 };
