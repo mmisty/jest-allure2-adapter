@@ -292,6 +292,14 @@ Todo: add example
 
 ## Releases
 
+#### 0.3.9:
+
+- added start and stop time to startTest, endTest
+
+#### 0.3.8:
+
+- added isTestActive for reporter
+
 #### 0.3.7:
 
 - framework label = 'jest' to tests by default (can be overridden)

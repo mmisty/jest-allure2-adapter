@@ -75,8 +75,12 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     );
   }
 
-  get test(): AllureCurrentApi {
+  get test(): AllureCurrent {
     return this.test_;
+  }
+
+  get isTestActive(): boolean {
+    return this.runningTest !== null;
   }
 
   get currentTest(): AllureTest {
@@ -115,8 +119,8 @@ export class AllureReporter extends Allure implements AllureReporterApi {
   }
 
   // todo decorators
-  startTest(spec: jasmine_.CustomReporterResult) {
-    this.runningTest = this.currentGroup.startTest(spec.description);
+  startTest(spec: jasmine_.CustomReporterResult, start?: number) {
+    this.runningTest = this.currentGroup.startTest(spec.description, start);
     this.runningTest.fullName = spec.fullName;
     this.executable.initDescription();
 
@@ -196,7 +200,7 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     this.currentTest.fullName = fullName;
   }
 
-  endTest(spec: jasmine_.CustomReporterResult) {
+  endTest(spec: jasmine_.CustomReporterResult, stop?: number) {
     this.endSteps();
 
     if (spec.status === SpecStatus.PASSED) {
@@ -257,7 +261,7 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     if (this.config?.autoHistoryId !== false) {
       this.setHistoryId(spec.fullName);
     }
-    this.currentTest.endTest();
+    this.currentTest.endTest(stop);
   }
 
   endGroup() {
@@ -425,7 +429,7 @@ export class AllureReporter extends Allure implements AllureReporterApi {
   }
 
   addDescription(description: string): void {
-    this.test_.addDescription(description);
+    this.test.addDescription(description);
   }
 
   description(description: string) {
@@ -520,9 +524,9 @@ export class AllureReporter extends Allure implements AllureReporterApi {
   }
 
   private applyDescription() {
-    const testDesc = this.test_.getDescription();
+    const testDesc = this.test.getDescription();
     if (testDesc.length) {
-      this.test_.applyDescription();
+      this.test.applyDescription();
     }
   }
 

@@ -47,9 +47,9 @@ export interface AllureCurrentApi {
 }
 export interface AllureReporterApi {
   test: AllureCurrentApi; // actions for current test
-
+  isTestActive: boolean;
   startGroup(name: string): void;
-  startTest(spec: jasmine_.CustomReporterResult): void;
+  startTest(spec: jasmine_.CustomReporterResult, start?: number): void;
   startStep(name: string, start?: number): AllureStep;
   stepStatus(status: Status, details?: StatusDetails | any): void;
   step<T>(
@@ -64,7 +64,7 @@ export interface AllureReporterApi {
     details?: StatusDetails | any,
     end?: number,
   ): void;
-  endTest(spec: jasmine_.CustomReporterResult): void;
+  endTest(spec: jasmine_.CustomReporterResult, stop?: number): void;
   endGroup(): void;
 
   writeCategories(categories: Category[]): void;
