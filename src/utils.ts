@@ -1,6 +1,7 @@
 import { ContentType } from 'allure-js-commons';
 import { AttachmentOptions } from 'allure-js-commons/dist/src/model';
 
+const dateNow = Date.now;
 const stripAnsi = require('strip-ansi');
 
 function addZero(num: number, digits: number = 2) {
@@ -8,7 +9,7 @@ function addZero(num: number, digits: number = 2) {
 }
 
 export const dateStr = (isFileName: boolean = false) => {
-  const date = new Date(Date.now());
+  const date = new Date(dateNow());
   return (
     date.getFullYear() +
     '-' +

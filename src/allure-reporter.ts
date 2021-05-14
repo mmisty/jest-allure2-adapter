@@ -28,7 +28,7 @@ import { TestSuiteProps } from './test-suite-props';
 import { AllureCurrent } from './allure-current';
 import { dateStr, getContent } from './utils';
 import { AttachmentOptions } from 'allure-js-commons/dist/src/model';
-
+const dateNow = Date.now;
 const stripAnsi = require('strip-ansi');
 
 enum SpecStatus {
@@ -120,7 +120,10 @@ export class AllureReporter extends Allure implements AllureReporterApi {
 
   // todo decorators
   startTest(spec: jasmine_.CustomReporterResult, start?: number) {
-    this.runningTest = this.currentGroup.startTest(spec.description, start);
+    this.runningTest = this.currentGroup.startTest(
+      spec.description,
+      start || dateNow(),
+    );
     this.runningTest.fullName = spec.fullName;
     this.executable.initDescription();
 
@@ -143,7 +146,7 @@ export class AllureReporter extends Allure implements AllureReporterApi {
   startStep(name: string, start?: number): AllureStep {
     const allureStep = this.currentExecutable.startStep(
       (this.config?.stepTimestamp ? dateStr() + ' | ' : '') + name,
-      start,
+      start || dateNow(),
     );
     this.stepStack.push(allureStep);
     return allureStep;
@@ -187,7 +190,7 @@ export class AllureReporter extends Allure implements AllureReporterApi {
       step.addAttachment('StatusDetails_' + dateStr(true), type, file);
     }
 
-    step.endStep(end);
+    step.endStep(end || dateNow());
     this.currentStepStatus = null;
   }
 
@@ -261,7 +264,7 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     if (this.config?.autoHistoryId !== false) {
       this.setHistoryId(spec.fullName);
     }
-    this.currentTest.endTest(stop);
+    this.currentTest.endTest(stop || dateNow());
   }
 
   endGroup() {
@@ -290,7 +293,7 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     start?: number,
     ...args: any[]
   ): any {
-    const allureStep = this.startStep(name, start);
+    const allureStep = this.startStep(name, start || dateNow());
     let result;
 
     if (!body) {

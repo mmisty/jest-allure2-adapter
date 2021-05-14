@@ -292,8 +292,9 @@ Todo: add example
 
 ## Releases
 
-#### 0.3.9:
+#### 0.3.11:
 
+- Original Date.now is used in case if you mock Date.now in tests
 - added start and stop time to startTest, endTest
 
 #### 0.3.8:
