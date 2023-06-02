@@ -1,6 +1,6 @@
 {
   "name": "jest-allure2-adapter",
-  "version": "0.3.11",
+  "version": "0.3.12",
   "description": "Allure 2 Adapter for jest",
   "main": "./dist/index",
   "types": "./dist/index.d.ts",
@@ -11,6 +11,7 @@
   "author": "Taisia Pitko (mmisty) <minydas@yandex.ru>",
   "license": "MIT",
   "scripts": {
+    "test": "jest",
     "prepublish": "pretty-quick && tsc",
     "build": "tsc",
     "fmt": "pretty-quick"
@@ -30,6 +31,8 @@
   "devDependencies": {
     "@types/jest": "^22.2.3",
     "@types/uuid": "^8.3.0",
+    "allure-commandline": "^2.22.1",
+    "allure-js-parser": "^0.0.6",
     "jest": "~26.4.2",
     "prettier": "~2.0.5",
     "pretty-quick": "^3.0.0",

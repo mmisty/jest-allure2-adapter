@@ -7,7 +7,8 @@
     "build": "tsc -p tsconfig.release.json",
     "build:watch": "tsc -w -p tsconfig.release.json",
     "lint": "eslint . --ext .ts,.tsx",
-    "test": "jest --coverage",
+    "test": "jest",
+    "test:cov": "jest --coverage",
     "test:watch": "jest --watch",
     "fmt": "pretty-quick"
   },

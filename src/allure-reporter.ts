@@ -48,7 +48,11 @@ type StepStatus = {
 export class AllureReporter extends Allure implements AllureReporterApi {
   private runningTest: AllureTest | null = null;
   private runningGroup: AllureGroup | null = null;
-  private groupNameStack: string[] = [];
+  private groupNameStack: {
+    name: string;
+    uuid: string;
+    children: string[];
+  }[] = [];
   private stepStack: AllureStep[] = [];
   private currentStepStatus: StepStatus | null = null;
 
@@ -115,7 +119,13 @@ export class AllureReporter extends Allure implements AllureReporterApi {
     // todo check currentgroup.startgroup
     // todo check empty name
     this.runningGroup = this.runtime.startGroup(name);
-    this.groupNameStack.push(name);
+    const group = { name: name, uuid: this.runningGroup.uuid, children: [] };
+    if (this.groupNameStack.length > 0) {
+      this.groupNameStack[this.groupNameStack.length - 1].children.push(
+        this.runningGroup.uuid,
+      );
+    }
+    this.groupNameStack.push(group);
   }
 
   // todo decorators
@@ -272,14 +282,17 @@ export class AllureReporter extends Allure implements AllureReporterApi {
       throw new Error('No runningGroup');
     }
 
-    this.runtime.writeGroup({
-      name: this.currentGroup.name,
-      uuid: this.currentGroup.uuid,
-      befores: [],
-      afters: [],
-      children: [],
-    });
-    this.groupNameStack.pop();
+    const g = this.groupNameStack.pop();
+    if (g) {
+      this.runtime.writeGroup({
+        name: g.name,
+        uuid: g.uuid,
+        befores: [],
+        afters: [],
+        children: g.children,
+      });
+    }
+
     this.currentGroup.endGroup();
   }
 
@@ -510,7 +523,12 @@ export class AllureReporter extends Allure implements AllureReporterApi {
       }
       return name;
     };
-    const groups = this.groupNameStack.map((p) => replaceDot(p));
+    if (this.groupNameStack.length > 0 && this.runningTest?.uuid) {
+      this.groupNameStack[this.groupNameStack.length - 1].children.push(
+        this.runningTest.uuid,
+      );
+    }
+    const groups = this.groupNameStack.map((p) => replaceDot(p.name));
     this.addPackage(groups.join('.'));
 
     if (groups.length > 0) {
