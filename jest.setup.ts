@@ -1,5 +1,17 @@
 import { CustomConsole, LogMessage, LogType } from '@jest/console';
-import { dateStr } from '../date-utils';
+
+export const dateStr = () => {
+  const date = new Date(Date.now());
+  return (
+    date.getUTCHours() +
+    ':' +
+    date.getMinutes() +
+    ':' +
+    date.getSeconds() +
+    '.' +
+    date.getMilliseconds()
+  );
+};
 
 function simpleFormatter(type: LogType, message: LogMessage): string {
   const TITLE_INDENT = '    ';

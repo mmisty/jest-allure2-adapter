@@ -1,5 +1,5 @@
 import { relative } from 'path';
-import { AllureReporterApi, jasmine_, registerAllureReporter } from '../../src';
+import { AllureReporterApi, jasmine_, registerAllureReporter } from '../src';
 
 class JasmineAllureReporter implements jasmine_.CustomReporter {
   private allure: AllureReporterApi;

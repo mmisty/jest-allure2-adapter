@@ -1,4 +1,4 @@
-import { dateStr } from './date-utils';
+import { dateStr } from '../jest.setup';
 
 export const allure = reporter;
 
