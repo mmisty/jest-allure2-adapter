@@ -11,6 +11,7 @@
   "author": "Taisia Pitko (mmisty) <minydas@yandex.ru>",
   "license": "MIT",
   "scripts": {
+    "test:prepare": "cd examples && npm run test",
     "prepublish": "pretty-quick && tsc",
     "build": "tsc",
     "fmt": "pretty-quick"
@@ -30,6 +31,7 @@
   "devDependencies": {
     "@types/jest": "^22.2.3",
     "@types/uuid": "^8.3.0",
+    "allure-js-parser": "^0.0.4",
     "jest": "~26.4.2",
     "prettier": "~2.0.5",
     "pretty-quick": "^3.0.0",
