@@ -4,7 +4,6 @@ import {
   Attachment,
   Category,
   ContentType,
-  IAllureConfig,
   LinkType,
   Severity,
   Stage,
@@ -14,7 +13,6 @@ import {
 } from 'allure-js-commons';
 import { AllureReporter } from './allure-reporter';
 import { JasmineAllureReporter } from './jasmine-allure-reporter';
-import { AttachmentOptions } from 'allure-js-commons/dist/src/model';
 
 export declare namespace jasmine_ {
   interface CustomReporter {

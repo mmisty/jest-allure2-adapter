@@ -35,7 +35,7 @@ class JasmineAllureReporter implements jasmine_.CustomReporter {
 
   specDone(spec: jasmine_.CustomReporterResult) {
     // ex. need to have the same test in report even after test was renamed
-    const testId = spec.description.match(/(\d+)/)[1];
+    const testId = spec.description.match(/(\d+)/)?.[1] ?? spec.id;
 
     // this.allure.setFullName(testId);
     if (this.testIds.indexOf(testId) !== -1) {
